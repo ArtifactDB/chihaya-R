@@ -53,7 +53,7 @@
     ghandle <- H5Gopen(fhandle, name)
     on.exit(H5Gclose(ghandle), add=TRUE, after=FALSE)
     for (n in names(values)) {
-        h5writeAttribute(values[[n]], ghandle, n, asScalar = TRUE, encoding = "UTF-8")
+        h5writeAttribute(values[[n]], ghandle, n, asScalar = TRUE, cset = "UTF8")
     }
 }
 
