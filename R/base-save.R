@@ -151,6 +151,29 @@ setMethod("saveDelayedObject", "ANY", function(x, file, name) {
         write_string_scalar(file, name, "left_orientation", "N");
         saveDelayedObject(x@components, file, paste0(name, "/right_seed"))
         write_string_scalar(file, name, "right_orientation", "T");
+
+    } else if (is(x, "ResidualMatrixSeed")) {
+        h5createGroup(file, name)
+        write_string_scalar(file, name, "r_type_hint", "residual matrix");
+
+        if (x@transposed) {
+            .label_group_operation(file, name, 'transpose')
+            h5write(x@perm - 1L, file, file.path(name, "permutation"))
+            name <- paste0(name, "/seed")
+            h5createGroup(file, name)
+        }
+
+        .label_group_operation(file, name, 'binary arithmetic')
+        write_string_scalar(file, name, "method", "-")
+        saveDelayedObject(x@.matrix, file, paste0(name, "/left"))
+
+        name <- paste0(name, "/right")
+        .label_group_operation(file, name, 'matrix product')
+        saveDelayedObject(x@Q, file, paste0(name, "/left_seed"))
+        write_string_scalar(file, name, "left_orientation", "N");
+        saveDelayedObject(x@Qty, file, paste0(name, "/right_seed"))
+        write_string_scalar(file, name, "right_orientation", "N");
+
     } else {
         pkg <- attr(class(x), "package")
         failed <- TRUE

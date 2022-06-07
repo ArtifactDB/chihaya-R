@@ -41,7 +41,15 @@ loadDelayed <- function(file, path="delayed") {
             }
         }
 
-        FUN <- known.env$operations[[attrs$delayed_operation]]
+        key <- attrs$delayed_operation
+        if (h5exists(file, path, "r_type_hint")) {
+            altkey <- h5read(file, path, "r_type_hint")
+            if (known.env$operations[[altkey]]()) {
+                key <- altkey
+            }
+        }
+
+        FUN <- known.env$operations[[key]]
         if (is.null(FUN)) {
             stop("unknown operation type '", attrs$delayed_operation, "'")
         }
