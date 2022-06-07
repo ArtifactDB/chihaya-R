@@ -1,6 +1,6 @@
 #' Saving simple seed classes
 #'
-#' Methods to save simple seed classes into the delayed operation file.
+#' Methods to save simple seed classes - namely, ordinary matrices or sparse \pkg{Matrix} objects - into the delayed operation file.
 #' See \dQuote{Dense arrays} and \dQuote{Sparse matrices} at \url{https://ltla.github.io/chihaya} for more details.
 #'
 #' @param x An R object of the indicated class.
@@ -9,17 +9,17 @@
 #' @return A \code{NULL}, invisibly.
 #' A group is created at \code{name} containing the contents of \code{x}.
 #'
-#' @details
-#' The ANY method will dispatch to classes that are implemented in other packages:
-#' \itemize{
-#' \item If \code{x} is a LowRankMatrixSeed from the \pkg{BiocSingular} package, it is handled as a delayed matrix product.
-#' \item Otherwise, if \code{x} comes from package \pkg{Y}, we will try to load \pkg{chihaya.Y}.
-#' This is assumed to define an appropriate \code{saveDelayedObject} method for \code{x}.
-#' }
-#' 
 #' @author Aaron Lun
 #'
 #' @examples
+#' # Saving an ordinary matrix.
+#' X <- matrix(rpois(100, 2), 5, 20)
+#' Y <- DelayedArray(X)
+#' temp <- tempfile(fileext=".h5")
+#' saveDelayed(Y, temp)
+#' rhdf5::h5ls(temp)
+#' loadDelayed(temp)
+#'
 #' # Saving a sparse matrix.
 #' X <- rsparsematrix(100, 20, 0.1)
 #' Y <- DelayedArray(X)
@@ -28,18 +28,8 @@
 #' rhdf5::h5ls(temp)
 #' loadDelayed(temp)
 #'
-#' # Saving a matrix product.
-#' library(BiocSingular)
-#' left <- matrix(rnorm(100000), ncol=20)
-#' right <- matrix(rnorm(50000), ncol=20)
-#' thing <- LowRankMatrix(left, right)
-#' temp <- tempfile()
-#' saveDelayed(thing, temp)
-#' rhdf5::h5ls(temp)
-#' loadDelayed(temp)
-#' 
 #' @export
-#' @rdname base-save
+#' @rdname simple
 #' @importFrom HDF5Array writeHDF5Array 
 #' @importFrom Matrix t
 setMethod("saveDelayedObject", "array", function(x, file, name) {
@@ -71,18 +61,18 @@ setMethod("saveDelayedObject", "array", function(x, file, name) {
         dimnames(vals) <- .load_list(file, file.path(name, "dimnames"), vectors.only=TRUE)
     }
 
-    DelayedArray(vals)
+    vals
 }
 
 #' @export
-#' @rdname base-save
+#' @rdname saveDelayedObject 
 #' @importFrom DelayedArray DelayedArray
 setMethod("saveDelayedObject", "DelayedArray", function(x, file, name) {
     saveDelayedObject(x@seed, file, name)
 })
 
 #' @export
-#' @rdname base-save
+#' @rdname simple
 #' @importFrom rhdf5 h5createGroup h5createDataset h5write
 #' @importClassesFrom Matrix CsparseMatrix
 setMethod("saveDelayedObject", "CsparseMatrix", function(x, file, name) {
@@ -135,65 +125,6 @@ setMethod("saveDelayedObject", "CsparseMatrix", function(x, file, name) {
         cls <- "dgCMatrix"
         x <- as.double(x)
     }
-    out <- new(cls, i=i, p=p, x=x, Dim=dims, Dimnames=dimnames)
 
-    DelayedArray(out)
-}
-
-#' @export
-#' @rdname base-save
-#' @importFrom rhdf5 h5createGroup 
-setMethod("saveDelayedObject", "ANY", function(x, file, name) {
-    if (is(x, "LowRankMatrixSeed")) { # From BiocSingular.
-        h5createGroup(file, name)
-        .label_group_operation(file, name, 'matrix product')
-        saveDelayedObject(x@rotation, file, paste0(name, "/left_seed"))
-        write_string_scalar(file, name, "left_orientation", "N");
-        saveDelayedObject(x@components, file, paste0(name, "/right_seed"))
-        write_string_scalar(file, name, "right_orientation", "T");
-    } else {
-        pkg <- attr(class(x), "package")
-        failed <- TRUE
-
-        if (!is.null(pkg)) {
-            # Trying again after loading the namespace of the likely
-            # package that contains the saveDelayedObject definition.
-            candidate <- paste0('chihaya.', pkg)
-            if (!isNamespaceLoaded(candidate)) {
-                err <- try(loadNamespace(candidate))
-                if (!is(err, "try-error")) {
-                    saveDelayedObject(x, file, name)
-                    failed <- FALSE
-                }
-            }
-        }
-
-        if (failed) {
-            stop("no saveDelayed handler defined for class '", class(x), "'")
-        }
-    }
-    invisible(NULL)
-})
-
-#' @importFrom rhdf5 h5read
-#' @importFrom Matrix t
-#' @importClassesFrom Matrix Matrix
-.load_matrix_product <- function(file, name) {
-    L <- .dispatch_loader(file, paste0(name, "/left_seed"))
-    Lori <- h5read(file, paste0(name, "/left_orientation"))
-    if (length(Lori) == 1 && as.character(Lori) == "T") {
-        L <- t(L)
-    } else if (is.matrix(L@seed) || is(L@seed, "Matrix")) {
-        L <- L@seed
-    }
-
-    R <- .dispatch_loader(file, paste0(name, "/right_seed"))
-    Rori <- h5read(file, paste0(name, "/right_orientation"))
-    if (length(Rori) == 1 && as.character(Rori) == "N") {
-        R <- t(R)
-    } else if (is.matrix(R@seed) || is(R@seed, "Matrix")) {
-        R <- R@seed
-    }
-
-    BiocSingular::LowRankMatrix(L, R)
+    new(cls, i=i, p=p, x=x, Dim=dims, Dimnames=dimnames)
 }
