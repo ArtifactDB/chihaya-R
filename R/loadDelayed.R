@@ -42,9 +42,11 @@ loadDelayed <- function(file, path="delayed") {
         }
 
         key <- attrs$delayed_operation
+
+        # Check if there's a R type hint that we can use.
         if (h5exists(file, path, "r_type_hint")) {
-            altkey <- h5read(file, path, "r_type_hint")
-            if (known.env$operations[[altkey]]()) {
+            altkey <- h5read(file, paste0(path, "/r_type_hint"))
+            if (altkey %in% names(known.env$operations) && known.env$operations[[altkey]]()) {
                 key <- altkey
             }
         }
@@ -94,7 +96,8 @@ known.env$operations <- list(
     `unary logic`=.load_delayed_unary_iso,
     `unary math`=.load_delayed_unary_iso,
     `unary special check`=.load_delayed_unary_iso,
-    `matrix product`=.load_matrix_product
+    `matrix product`=.load_matrix_product,
+    `residual matrix`=.load_residual_matrix
 )
 
 known.env$arrays <- list(
