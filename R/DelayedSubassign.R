@@ -25,22 +25,26 @@
 setMethod("saveDelayedObject", "DelayedSubassign", function(x, file, name) {
     h5createGroup(file, name)
     .label_group_operation(file, name, 'subset assignment')
-    .save_list(x@Lindex, file, file.path(name, "index"), vectors.only=TRUE)
+
+    zerobased <- .zero_indices(x@Lindex)
+    .save_list(zerobased, file, file.path(name, "index"), vectors.only=TRUE)
+
     saveDelayedObject(x@seed, file, file.path(name, "seed"))
     saveDelayedObject(x@Rvalue, file, file.path(name, "value"))
     invisible(NULL)
 })
 
+#' @import DelayedArray
 .load_delayed_subassign <- function(file, path, contents) {
     x <- .dispatch_loader(file, file.path(path, "seed"))
+    if (!is(x, "DelayedArray")) {
+        x <- DelayedArray(x)
+    }
+
     value <- .dispatch_loader(file, file.path(path, "value"))
 
     index <- .load_list(file, file.path(path, "index"), vectors.only=TRUE)
-    for (i in seq_along(index)) {
-        if (is.null(index[[i]])) {
-            index[[i]] <- substitute()
-        }
-    }
+    index <- .restore_indices(index)
 
     do.call(`[<-`, c(list(x=x), index, list(value=value)))
 } 

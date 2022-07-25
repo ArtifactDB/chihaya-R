@@ -4,8 +4,8 @@ Description:
     Saves the delayed operations of a DelayedArray to a HDF5 file.
     This enables efficient recovery of the DelayedArray's contents in other languages and analysis frameworks.
 Authors@R: person("Aaron", "Lun", role=c("cre", "aut"), email="infinite.monkeys.with.keyboards@gmail.com") 
-Version: 0.99.1
-Date: 2021-04-27
+Version: 0.101.4
+Date: 2022-06-27
 License: GPL-3
 Depends: 
     DelayedArray
@@ -17,6 +17,7 @@ Imports:
     HDF5Array
 Suggests:
     BiocSingular,
+    ResidualMatrix,
     BiocStyle,
     testthat,
     rmarkdown,
@@ -25,4 +26,4 @@ LinkingTo:
     Rcpp,
     Rhdf5lib
 VignetteBuilder: knitr
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0
