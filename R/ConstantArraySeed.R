@@ -35,7 +35,7 @@ setMethod("saveDelayedObject", "ConstantArraySeed", function(x, file, name) {
         on.exit(H5Fclose(fhandle))
         dhandle <- H5Dopen(fhandle, file.path(name, "value"))
         on.exit(H5Dclose(dhandle), add=TRUE, after=FALSE)
-        h5writeAttribute("logical", dhandle, "storage.mode", asScalar = TRUE, encoding = "UTF-8")
+        h5writeAttribute("logical", dhandle, "storage.mode", asScalar = TRUE, cset = "UTF8")
 
     } else if (is.numeric(x@value)) {
         write_number_scalar(file, name, "value", x@value)
