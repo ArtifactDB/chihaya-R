@@ -10,6 +10,7 @@ then
 else
     git clone https://github.com/LTLA/chihaya source
 fi
+(cd source && git checkout v1.0.0)
 
 rm -rf chihaya
 mkdir chihaya
