@@ -75,6 +75,26 @@ test_that("missing values in character arrays are respected", {
     expect_identical("_NA", arra[["missing_placeholder"]])
     out <- loadDelayed(tmp)
     expect_identical(x, out)
+
+    # Back-compatibility check.
+    x0 <- matrix(sample(LETTERS, 100, replace=TRUE), 5, 20)
+    x <- DelayedArray(x0)
+    tmp <- tempfile(fileext=".h5")
+    saveDelayed(x, tmp)
+
+    library(rhdf5)
+    (function() {
+        fhandle <- H5Fopen(tmp)
+        on.exit(H5Fclose(fhandle), add=TRUE)
+        dhandle <- H5Dopen(fhandle, "delayed/data")
+        on.exit(H5Dclose(dhandle), add=TRUE)
+        h5writeAttribute("Z", dhandle, "missing-value-placeholder")
+    })()
+
+    copy <- x0
+    copy[copy=="Z"] <- NA
+    out <- loadDelayed(tmp)
+    expect_identical(copy, as.matrix(out))
 })
 
 test_that("missing values in other array types are respected", {

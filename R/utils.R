@@ -16,6 +16,12 @@
 #' @param vectors.only Logical scalar indicating whether elements of \code{x} should be saved and loaded as 1-d arrays rather than seeds.
 #' @param op String containing the name of the delayed operation to use to label the group.
 #' @param arr String containing the name of the delayed array to use to label the group.
+#' @param scalar Logical scalar indicating whether length-1 \code{x} should be saved to file as a scalar.
+#' @param optimize.type Logical scalar indicating whether to optimize the HDF5 storage type for non-scalar, non-string \code{x}.
+#' @param h5type String specifying the HDF5 storage type to use for non-scalar, non-string \code{x}, see \code{\link{h5const}("H5T")} for possible choices.
+#' This is ignored if \code{optimize.type=TRUE}.
+#' @param chunks Integer vector of length equal to the number of dimensions of non-scalar \code{x}, specifying the chunk dimensions to use.
+#' If \code{NULL}, this is set to the length of \code{x} (if \code{x} is a vector) or chosen by \pkg{HDF5Array} (if \code{x} is an array).
 #' 
 #' @return 
 #' \code{.saveList} and \code{.saveScalar} will write \code{x} to file, returning \code{NULL} invisibly.
@@ -161,6 +167,9 @@ NULL
     dname <- paste0(parent, "/", name)
     .non_scalar_saver <- function(x, final.h5type) {
         if (is.null(dim(x))) {
+            if (is.null(chunks)) {
+                chunks <- length(x)
+            }
             h5createDataset(file, dname, dims=length(x), H5type=final.h5type, chunk=chunks)
             h5write(x, file, dname)
         } else {
