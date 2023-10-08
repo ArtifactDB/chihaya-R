@@ -4,10 +4,33 @@
 \alias{chihaya-utils}
 \alias{.saveList}
 \alias{.loadList}
-\alias{.labelArrayGroup}
 \alias{.labelOperationGroup}
-\alias{.writeScalar}
+\alias{.labelArrayGroup}
+\alias{.saveDataset}
+\alias{.pickArrayType}
 \title{Developer utilities for custom extensions}
+\usage{
+.saveList(file, name, x, parent = NULL, vectors.only = FALSE)
+
+.loadList(file, name, parent = NULL, vectors.only = FALSE)
+
+.labelOperationGroup(file, name, op)
+
+.labelArrayGroup(file, name, arr)
+
+.saveDataset(
+  file,
+  name,
+  x,
+  parent = NULL,
+  scalar = FALSE,
+  optimize.type = FALSE,
+  h5type = NULL,
+  chunks = NULL
+)
+
+.pickArrayType(x)
+}
 \arguments{
 \item{file}{String containing a path to a file.}
 
@@ -18,7 +41,7 @@ This should be a full path from the root of the file, unless \code{parent} is pr
 \itemize{ 
 \item For \code{.pickArrayType}, this should be an array-like object.
 \item For \code{.saveList}, this should be a list.
-\item For \code{.saveScalar}, this should be a length-1 integer, logical, character or double vector.
+\item For \code{.saveDataset}, this should be a integer, logical, character or double vector or array.
 }}
 
 \item{parent}{String containing the name of the parent containing the child \code{name}.}
