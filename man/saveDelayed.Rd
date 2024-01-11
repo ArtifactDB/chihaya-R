@@ -4,7 +4,7 @@
 \alias{saveDelayed}
 \title{Save a DelayedMatrix}
 \usage{
-saveDelayed(x, file, path = "delayed")
+saveDelayed(x, file, path = "delayed", version = NULL)
 }
 \arguments{
 \item{x}{A \linkS4class{DelayedArray} object.}

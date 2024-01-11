@@ -21,18 +21,30 @@
 #' 
 #' @export
 #' @rdname ConstantArraySeed 
-#' @importFrom rhdf5 h5createGroup h5write
-setMethod("saveDelayedObject", "ConstantArraySeed", function(x, file, name) {
-    h5createGroup(file, name)
-    .labelArrayGroup(file, name, 'constant array')
-    h5write(dim(x), file, file.path(name, "dimensions"));
-    .saveDataset(file, "value", x@value, parent=name, scalar=TRUE)
+#' @import rhdf5 alabaster.base
+setMethod("saveDelayedObject", "ConstantArraySeed", function(x, file, name, version=package_version("1.1"), ...) {
+    fhandle <- H5Fopen(file, "H5F_ACC_RDWR")
+    on.exit(H5Fclose(fhandle), add=TRUE, after=FALSE)
+    ghandle <- H5Gcreate(fhandle, name)
+    on.exit(H5Gclose(ghandle), add=TRUE, after=FALSE)
+
+    h5_write_attribute(ghandle, "delayed_type", "array", scalar=TRUE)
+    h5_write_attribute(ghandle, "delayed_array", "constant array", scalar=TRUE)
+    h5_write_vector(ghandle, "dimensions", dim(x), compress=0, type="H5T_NATIVE_UINT32")
+    save_vector(ghandle, "value", x@value, version=version, scalar=TRUE)
+
     invisible(NULL)
 })
 
 #' @import DelayedArray
-.load_constant_array <- function(file, name, contents) {
-    dim <- h5read(file, file.path(name, "dimensions"), drop=TRUE)
-    val <- .load_vector_with_attributes(file, file.path(name, "value")) 
+.load_constant_array <- function(file, name, contents, version) {
+    fhandle <- H5Fopen(file, "H5F_ACC_RDONLY")
+    on.exit(H5Fclose(fhandle), add=TRUE, after=FALSE)
+    ghandle <- H5Gopen(fhandle, name)
+    on.exit(H5Gclose(ghandle), add=TRUE, after=FALSE)
+
+    dim <- h5_read_vector(ghandle, "dimensions")
+    val <- load_vector(ghandle, "value", drop=TRUE, version=version)
+
     ConstantArray(dim, value=val)
 }

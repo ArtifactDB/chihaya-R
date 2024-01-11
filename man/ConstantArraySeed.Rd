@@ -4,7 +4,7 @@
 \alias{saveDelayedObject,ConstantArraySeed-method}
 \title{Saving a ConstantArraySeed}
 \usage{
-\S4method{saveDelayedObject}{ConstantArraySeed}(x, file, name)
+\S4method{saveDelayedObject}{ConstantArraySeed}(x, file, name, version = package_version("1.1"), ...)
 }
 \arguments{
 \item{x}{A \linkS4class{ConstantArraySeed} object.}

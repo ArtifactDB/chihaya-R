@@ -5,7 +5,7 @@
 \alias{saveDelayedObject,DelayedArray-method}
 \title{Save a delayed object}
 \usage{
-saveDelayedObject(x, file, name)
+saveDelayedObject(x, file, name, ...)
 
 \S4method{saveDelayedObject}{DelayedArray}(x, file, name)
 }
@@ -15,6 +15,8 @@ saveDelayedObject(x, file, name)
 \item{file}{String containing the path to a HDF5 file.}
 
 \item{name}{String containing the name of the group to save into.}
+
+\item{...}{Further arguments, typically \code{version} containing a version string.}
 }
 \value{
 A \code{NULL} is returned invisibly.

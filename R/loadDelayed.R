@@ -23,12 +23,18 @@
 #'
 #' @export
 loadDelayed <- function(file, path="delayed") {
-    out <- .dispatch_loader(file, path)
+    attrs <- h5readAttributes(file, path)
+    version <- "0.99"
+    if ("delayed_version" %in% names(attrs)) {
+        version <- attrs[["delayed_version"]]
+    }
+
+    out <- .dispatch_loader(file, path, version=package_version(version))
     DelayedArray(out)
 }
 
 #' @importFrom rhdf5 h5readAttributes h5read
-.dispatch_loader <- function(file, path) {
+.dispatch_loader <- function(file, path, ...) {
     attrs <- h5readAttributes(file, path)
 
     if (is.null(attrs$delayed_type)) {
@@ -57,7 +63,7 @@ loadDelayed <- function(file, path="delayed") {
             stop("unknown operation type '", attrs$delayed_operation, "'")
         }
 
-        vals <- FUN(file, path)
+        vals <- FUN(file, path, ...)
 
     } else if (identical(attrs$delayed_type, "array")) {
         if (startsWith(attrs$delayed_array, "custom ") && h5exists(file, path, "r_package")) {
@@ -72,7 +78,7 @@ loadDelayed <- function(file, path="delayed") {
             stop("unknown array type '", attrs$delayed_array, "'")
         }
 
-        vals <- FUN(file, path)
+        vals <- FUN(file, path, ...)
 
     } else {
         stop("unsupported type '", attrs$delayed_type[1], "'")

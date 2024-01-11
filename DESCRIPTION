@@ -14,7 +14,9 @@ Imports:
     Matrix,
     rhdf5,
     Rcpp,
-    HDF5Array
+    HDF5Array,
+    alabaster.base,
+    alabaster.matrix
 Suggests:
     BiocGenerics,
     S4Vectors,
@@ -26,7 +28,8 @@ Suggests:
     knitr
 LinkingTo: 
     Rcpp,
-    Rhdf5lib
+    Rhdf5lib,
+    alabaster.base
 VignetteBuilder: knitr
 BugReports: https://github.com/ArtifactDB/chihaya-R/issues
 URL: https://github.com/ArtifactDB/chihaya-R

@@ -27,15 +27,28 @@
 #'
 #' @export
 #' @importFrom rhdf5 h5createFile
-saveDelayed <- function(x, file, path="delayed") {
+saveDelayed <- function(x, file, path="delayed", version=NULL) {
     if (!is(x, "DelayedArray")) {
         stop("'x' should be a DelayedArray")
     }
     if (!file.exists(file)) {
         h5createFile(file)
     }
-    saveDelayedObject(x@seed, file, path)
-    .label_group(file, path, c(delayed_version="1.0.0"))
+
+    if (is.null(version)) {
+        version <- package_version("1.1")
+    }
+    saveDelayedObject(x@seed, file, path, version=version)
+
+    # Slapping the version number in.
+    local({
+        fhandle <- H5Fopen(file, "H5F_ACC_RDWR")
+        on.exit(H5Fclose(fhandle), add=TRUE, after=FALSE)
+        ghandle <- H5Gopen(fhandle, path)
+        on.exit(H5Gclose(ghandle), add=TRUE, after=FALSE)
+        h5_write_attribute(ghandle, "delayed_version", as.character(version))
+    })
+
     validate(file, path)
     invisible(NULL)
 }

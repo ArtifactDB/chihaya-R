@@ -5,6 +5,7 @@
 #' @param x An R object containing a delayed operation or seed class.
 #' @param file String containing the path to a HDF5 file.
 #' @param name String containing the name of the group to save into.
+#' @param ... Further arguments, typically \code{version} containing a version string.
 #'
 #' @author Aaron Lun
 #' @return A \code{NULL} is returned invisibly.
@@ -28,4 +29,4 @@
 #' @export
 #' @import methods
 #' @name saveDelayedObject 
-setGeneric("saveDelayedObject", function(x, file, name) standardGeneric("saveDelayedObject"))
+setGeneric("saveDelayedObject", function(x, file, name, ...) standardGeneric("saveDelayedObject"))
