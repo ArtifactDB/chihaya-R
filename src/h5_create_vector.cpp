@@ -6,7 +6,7 @@
 //[[Rcpp::export(rng=false)]]
 SEXP h5_create_vector(
     Rcpp::RObject gptr,
-    std::string name,
+    std::string dname,
     Rcpp::List type,
     Rcpp::RObject len,
     int compress,
@@ -30,6 +30,6 @@ SEXP h5_create_vector(
     H5::Group& ghandle = extract_group(gptr);
     H5::DataSpace dspace(1, &dlen);
     auto dtype = extract_data_type(type);
-    auto dptr = new H5::DataSet(ghandle.createDataSet(name, dtype, dspace, cplist));
+    auto dptr = new H5::DataSet(ghandle.createDataSet(dname, dtype, dspace, cplist));
     return Rcpp::XPtr<H5::DataSet>(dptr, true);
 }

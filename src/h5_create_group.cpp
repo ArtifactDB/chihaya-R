@@ -4,8 +4,8 @@
 #include "utils.h"
 
 //[[Rcpp::export(rng=false)]]
-SEXP h5_create_group(Rcpp::RObject gptr, std::string name) {
+SEXP h5_create_group(Rcpp::RObject gptr, std::string gname) {
     auto& ghandle = extract_group(gptr);
-    auto ptr = new H5::Group(ghandle.createGroup(name));
-    return Rcpp::XPtr<H5::Group>(ptr, true);
+    auto sub_gptr = new H5::Group(ghandle.createGroup(gname));
+    return Rcpp::XPtr<H5::Group>(sub_gptr, true);
 }
