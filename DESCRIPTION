@@ -1,32 +1,22 @@
 Package: chihaya
-Title: Save Delayed Operations to a HDF5 File
+Title: HDF5 Bindings for Alabaster 
 Description: 
-    Saves the delayed operations of a DelayedArray to a HDF5 file.
-    This enables efficient recovery of the DelayedArray's contents in other languages and analysis frameworks.
+    Low-level utilities for interacting with HDF5 files via C++ bindings to the Rhdf5lib package.
+    This is intended for use by the various alabaster.* packages,
+    where it provides more control than the rhdf5 package.
 Authors@R: person("Aaron", "Lun", role=c("cre", "aut"), email="infinite.monkeys.with.keyboards@gmail.com") 
 Version: 1.1.2
 Date: 2023-10-07
 License: GPL-3
 Depends: 
-    DelayedArray
-Imports:
-    methods,
-    Matrix,
-    rhdf5,
-    Rcpp,
-    HDF5Array
-Suggests:
-    BiocGenerics,
-    S4Vectors,
-    BiocSingular,
-    ResidualMatrix,
-    BiocStyle,
     testthat,
     rmarkdown,
+    BiocStyle,
     knitr
 LinkingTo: 
     Rcpp,
-    Rhdf5lib
+    Rhdf5lib,
+    assorthead
 VignetteBuilder: knitr
 BugReports: https://github.com/ArtifactDB/chihaya-R/issues
 URL: https://github.com/ArtifactDB/chihaya-R
