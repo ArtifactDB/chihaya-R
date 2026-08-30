@@ -7,24 +7,34 @@
 #include <algorithm>
 #include <cstring>
 
-H5T_conv_ret_t handle_conversion_error(H5T_conv_except_t, hid_t, hid_t, void*, void*, void* user_data) {
+static H5T_conv_ret_t handle_conversion_error(H5T_conv_except_t, hid_t, hid_t, void*, void*, void* user_data) {
     *reinterpret_cast<int*>(user_data) = 1;
     return H5T_CONV_HANDLED;
 }
 
 //[[Rcpp::export(rng=false)]]
-SEXP h5_read_vector(Rcpp::RObject dptr, std::size_t block_size_bytes) {
+Rcpp::List h5_read_dataset(Rcpp::RObject dptr, std::size_t block_size_bytes) {
     auto& dhandle = extract_dataset(dptr);
 
     auto dspace = dhandle.getSpace();
-    if (dspace.getSimpleExtentNdims() != 1) {
-        throw std::runtime_error("dataset should be 1-dimensional");
+    std::vector<hsize_t> dims;
+    const auto ndims = dspace.getSimpleExtentNdims();
+    if (ndims) {
+        sanisizer::resize(dims, ndims);
+        dspace.getSimpleExtentDims(dims.data());
     }
-    hsize_t len;
-    dspace.getSimpleExtentDims(&len);
 
     auto dtype = dhandle.getDataType();
     auto dclass = dtype.getClass();
+
+    Rcpp::List output;
+    R_xlen_t len = 1; // defaults to length 1 if scalar, i.e., ndims == 0.
+    Rcpp::IntegerVector outdims(ndims);
+    for (I<decltype(ndims)> d = 0; d < ndims; ++d) {
+        len = sanisizer::product<R_xlen_t>(len, dims[d]);
+        outdims[d] = sanisizer::cast<int>(dims[d]);
+    }
+    output["dim"] = outdims;
 
     if (dclass == H5T_INTEGER) {
         H5::IntType itype(dhandle); 
@@ -34,31 +44,35 @@ SEXP h5_read_vector(Rcpp::RObject dptr, std::size_t block_size_bytes) {
         if (dsize < 4 || (dsize == 4 && dsign == H5T_SGN_2)) {
             auto ivec = sanisizer::create<Rcpp::IntegerVector>(len);
             dhandle.read(static_cast<int*>(ivec.begin()), H5::PredType::NATIVE_INT);
-            return ivec;
-        }
+            output["value"] = ivec;
+            output["type"] = "integer";
 
-        // If it's too large for a 32-bit integer, we try to convert it to double-precision.
-        auto dvec = sanisizer::create<Rcpp::NumericVector>(len);
-        H5::DSetMemXferPropList xplist(H5::DSetMemXferPropList::DEFAULT);
-        int failed = 0;
-        xplist.setTypeConvCB(&handle_conversion_error, &failed);
+        } else {
+            // If it's too large for a 32-bit integer, we try to convert it to double-precision.
+            auto dvec = sanisizer::create<Rcpp::NumericVector>(len);
+            H5::DSetMemXferPropList xplist(H5::DSetMemXferPropList::DEFAULT);
+            int failed = 0;
+            xplist.setTypeConvCB(&handle_conversion_error, &failed);
 
-        dhandle.read(
-            static_cast<double*>(dvec.begin()),
-            H5::PredType::NATIVE_DOUBLE,
-            dspace,
-            dspace,
-            xplist
-        );
-        if (failed) {
-            throw std::runtime_error("cannot accurately convert large integers to double-precision");
+            dhandle.read(
+                static_cast<double*>(dvec.begin()),
+                H5::PredType::NATIVE_DOUBLE,
+                dspace,
+                dspace,
+                xplist
+            );
+            if (failed) {
+                throw std::runtime_error("cannot accurately convert large integers to double-precision");
+            }
+            output["value"] = dvec;
+            output["type"] = "integer";
         }
-        return dvec;
 
     } else if (dclass == H5T_FLOAT) {
         auto dvec = sanisizer::create<Rcpp::NumericVector>(len);
         dhandle.read(static_cast<double*>(dvec.begin()), H5::PredType::NATIVE_DOUBLE);
-        return dvec;
+        output["value"] = dvec;
+        output["type"] = "float";
 
     } else if (dclass == H5T_STRING) {
         H5::StrType stype(dhandle);
@@ -80,7 +94,7 @@ SEXP h5_read_vector(Rcpp::RObject dptr, std::size_t block_size_bytes) {
                 src.setExtentSimple(1, &count);
                 src.selectAll();
                 dspace.selectHyperslab(H5S_SELECT_SET, &count, &offset);
-                dhandle.write(block_ptrs.data(), stype, src, dspace, xplist);
+                dhandle.read(block_ptrs.data(), stype, src, dspace, xplist);
                 
                 try {
                     for (hsize_t i = 0; i < count; ++i) {
@@ -124,11 +138,12 @@ SEXP h5_read_vector(Rcpp::RObject dptr, std::size_t block_size_bytes) {
             }
         }
 
-        return svec;
+        output["value"] = svec;
+        output["type"] = "string";
 
     } else {
         throw std::runtime_error("unsupported vector type");
     }
 
-    return R_NilValue;
+    return output;
 }

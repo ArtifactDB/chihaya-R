@@ -8,15 +8,21 @@
 #include <cstring>
 
 //[[Rcpp::export(rng=false)]]
-SEXP h5_write_vector(Rcpp::RObject dptr, Rcpp::RObject vec, std::size_t block_size_bytes) {
+SEXP h5_write_dataset(Rcpp::RObject dptr, Rcpp::RObject vec, std::size_t block_size_bytes) {
     auto& dhandle = extract_dataset(dptr);
 
     auto dspace = dhandle.getSpace();
-    if (dspace.getSimpleExtentNdims() != 1) {
-        throw std::runtime_error("dataset should be 1-dimensional");
+    std::vector<hsize_t> dims;
+    const auto ndims = dspace.getSimpleExtentNdims();
+    if (ndims) {
+        sanisizer::resize(dims, ndims);
+        dspace.getSimpleExtentDims(dims.data());
     }
-    hsize_t len;
-    dspace.getSimpleExtentDims(&len);
+
+    R_xlen_t len = 1; // defaults to length 1 if scalar, i.e., ndims == 0.
+    for (I<decltype(ndims)> d = 0; d < ndims; ++d) {
+        len = sanisizer::product<R_xlen_t>(len, dims[d]);
+    }
 
     if (vec.sexp_type() == INTSXP) {
         Rcpp::IntegerVector ivec(vec);
