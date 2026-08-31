@@ -31,7 +31,7 @@ Rcpp::List h5_read_attribute(Rcpp::RObject aptr) {
         len = sanisizer::product<R_xlen_t>(len, dims[d]);
         outdims[d] = sanisizer::cast<int>(dims[d]);
     }
-    output["dim"] = outdims;
+    output["dims"] = outdims;
 
     if (aclass == H5T_INTEGER) {
         auto itype = ahandle.getIntType(); 
@@ -42,7 +42,6 @@ Rcpp::List h5_read_attribute(Rcpp::RObject aptr) {
             auto ivec = sanisizer::create<Rcpp::IntegerVector>(len);
             ahandle.read(H5::PredType::NATIVE_INT, static_cast<int*>(ivec.begin()));
             output["value"] = ivec;
-            output["type"] = "integer";
 
         } else {
             auto dvec = sanisizer::create<Rcpp::NumericVector>(len);
@@ -65,7 +64,6 @@ Rcpp::List h5_read_attribute(Rcpp::RObject aptr) {
             }
 
             output["value"] = dvec;
-            output["type"] = "integer";
         }
 
     } else if (aclass == H5T_FLOAT) {
@@ -103,7 +101,6 @@ Rcpp::List h5_read_attribute(Rcpp::RObject aptr) {
         }
 
         output["value"] = svec;
-        output["type"] = "string";
 
     } else {
         throw std::runtime_error("unsupported vector type");

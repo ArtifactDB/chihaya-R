@@ -48,7 +48,7 @@ Rcpp::List h5_read_dataset(Rcpp::RObject dptr) {
         len = sanisizer::product<R_xlen_t>(len, dims[d]);
         outdims[d] = sanisizer::cast<int>(dims[d]);
     }
-    output["dim"] = outdims;
+    output["dims"] = outdims;
 
     if (dclass == H5T_INTEGER) {
         H5::IntType itype(dhandle); 
@@ -59,7 +59,6 @@ Rcpp::List h5_read_dataset(Rcpp::RObject dptr) {
             auto ivec = sanisizer::create<Rcpp::IntegerVector>(len);
             dhandle.read(static_cast<int*>(ivec.begin()), H5::PredType::NATIVE_INT);
             output["value"] = ivec;
-            output["type"] = "integer";
 
         } else {
             // If it's too large for a 32-bit integer, we try to convert it to double-precision.
@@ -136,14 +135,12 @@ Rcpp::List h5_read_dataset(Rcpp::RObject dptr) {
             }
 
             output["value"] = dvec;
-            output["type"] = "integer";
         }
 
     } else if (dclass == H5T_FLOAT) {
         auto dvec = sanisizer::create<Rcpp::NumericVector>(len);
         dhandle.read(static_cast<double*>(dvec.begin()), H5::PredType::NATIVE_DOUBLE);
         output["value"] = dvec;
-        output["type"] = "float";
 
     } else if (dclass == H5T_STRING) {
         H5::StrType stype(dhandle);
@@ -208,7 +205,6 @@ Rcpp::List h5_read_dataset(Rcpp::RObject dptr) {
         }
 
         output["value"] = svec;
-        output["type"] = "string";
 
     } else {
         throw std::runtime_error("unsupported vector type");

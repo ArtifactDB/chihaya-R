@@ -7,7 +7,7 @@
 #' @param name String containing the name of the child Group to open.
 #'
 #' @return
-#' For \code{openGroup}, an external pointer to the HDF5 group. 
+#' For \code{openGroup}, an external pointer to the HDF5 Group. 
 #'
 #' For \code{closeGroup}, the Group referenced by \code{handle} is closed.
 #' \code{handle} itself should no longer be used.
@@ -20,14 +20,14 @@
 #' @author Aaron Lun
 #' @examples
 #' tmp <- tempfile(fileext=".h5")
-#' handle <- createFile(tmp)
-#' createGroup(handle, "foo")
-#' closeFile(handle)
+#' fhandle <- createFile(tmp)
+#' createGroup(fhandle, "foo")
+#' closeFile(fhandle)
 #'
-#' new_handle <- openFile(handle)
-#' ghandle <- openGroup(new_handle, "foo")
+#' fhandle <- openFile(tmp)
+#' ghandle <- openGroup(fhandle, "foo")
 #' closeGroup(ghandle)
-#' closeGroup(new_handle)
+#' closeGroup(fhandle)
 #'
 #' @export
 openGroup <- function(handle, name) {
