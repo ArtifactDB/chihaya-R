@@ -2,13 +2,30 @@
 #include "H5Cpp.h"
 
 #include "utils.h"
+#include "traverse_array_by_chunk.h"
 
 #include <cstddef>
 #include <algorithm>
 #include <cstring>
 
+template<typename InnerLoop_, typename OuterLoop_>
+void write_array_by_chunk(
+    const std::vector<hsize_t>& dims,
+    const std::vector<hsize_t>& chunkdims,
+    InnerLoop_ inner_loop,
+    OuterLoop_ outer_loop
+) {
+    traverse_array_by_chunk(
+        dims,
+        chunkdims,
+        [&](const H5::DataSpace& file_space, const H5::DataSpace& mem_space) -> bool { return false; },
+        std::move(inner_loop),
+        std::move(outer_loop)
+    );
+}
+
 //[[Rcpp::export(rng=false)]]
-SEXP h5_write_dataset(Rcpp::RObject dptr, Rcpp::RObject vec, std::size_t block_size_bytes) {
+SEXP h5_write_dataset(Rcpp::RObject dptr, Rcpp::RObject vec) {
     auto& dhandle = extract_dataset(dptr);
 
     auto dspace = dhandle.getSpace();
@@ -57,63 +74,67 @@ SEXP h5_write_dataset(Rcpp::RObject dptr, Rcpp::RObject vec, std::size_t block_s
             }
         }
 
-        if (stype.isVariableStr()) {
-            constexpr auto elsize = sizeof(Rcpp::String) + sizeof(char*);
-            const auto bsize = sanisizer::max(1, block_size_bytes / elsize);
-            std::vector<Rcpp::String> block_strs;
-            std::vector<const char*> block_ptrs;
-            block_strs.reserve(bsize);
-            block_ptrs.reserve(bsize);
+        if (ndims) {
+            // Here, the idea is to only load each chunk in at a time, and convert it to an R string accordingly. 
+            auto chunkdims = extract_chunk_dims(dhandle.getCreatePlist(), dims);
+            const hsize_t chunklen = get_chunk_length(chunkdims);
 
-            hsize_t offset = 0;
-            H5::DataSpace src;
-            while (offset < len) {
-                const hsize_t count = sanisizer::min(len - offset, bsize);
+            if (stype.isVariableStr()) {
+                auto block_ptrs = sanisizer::create<std::vector<const char*> >(chunklen);
+                auto block_strs = sanisizer::create<std::vector<Rcpp::String> >(chunklen);
+                write_array_by_chunk(
+                    dims,
+                    chunkdims, 
+                    [&](hsize_t chunk_offset, hsize_t full_offset) -> void {
+                        // Storing a temporary to ensure that the C string pointers are valid.
+                        block_strs[chunk_offset] = Rcpp::String(svec[full_offset]);
+                        block_ptrs[chunk_offset] = block_strs[chunk_offset].get_cstring();
+                    },
+                    [&](const H5::DataSpace& src_space, const H5::DataSpace& dest_space) -> void {
+                        dhandle.write(block_ptrs.data(), stype, dest_space, src_space);
+                    }
+                );
 
-                block_strs.clear();
-                for (hsize_t s = 0; s < count; ++s) {
-                    block_strs.push_back(svec[offset + s]);
-                }
-
-                block_ptrs.clear();
-                for (hsize_t s = 0; s < count; ++s) {
-                    block_ptrs.push_back(block_strs[s].get_cstring());
-                }
-
-                src.setExtentSimple(1, &count);
-                src.selectAll();
-                dspace.selectHyperslab(H5S_SELECT_SET, &count, &offset);
-                dhandle.write(block_ptrs.data(), stype, src, dspace);
-
-                offset += count;
+            } else {
+                const auto elsize = stype.getSize();
+                std::vector<char> block_buffer(sanisizer::product<typename std::vector<char>::size_type>(chunklen, elsize));
+                write_array_by_chunk(
+                    dims,
+                    chunkdims, 
+                    [&](hsize_t chunk_offset, hsize_t full_offset) -> void {
+                        Rcpp::String current(svec[full_offset]);
+                        const auto ptr = current.get_cstring();
+                        std::copy_n(
+                            ptr,
+                            sanisizer::min(elsize, std::strlen(ptr)),
+                            block_buffer.data() + sanisizer::product_unsafe<std::size_t>(chunk_offset, elsize)
+                        );
+                    },
+                    [&](const H5::DataSpace& src_space, const H5::DataSpace& dest_space) -> void {
+                        dhandle.write(block_buffer.data(), stype, dest_space, src_space);
+                    }
+                );
             }
 
         } else {
-            const auto elsize = stype.getSize();
-            const auto bsize = sanisizer::max(1, block_size_bytes / elsize);
-            auto block_buffer = sanisizer::create<std::vector<char> >(sanisizer::product_unsafe<std::size_t>(bsize, elsize));
+            // Much simpler for scalars.
+            if (stype.isVariableStr()) {
+                Rcpp::String current(svec[0]);
+                std::vector<const char*> ptrs(1);
+                ptrs[0] = current.get_cstring();
+                dhandle.write(ptrs.data(), stype);
 
-            hsize_t offset = 0;
-            H5::DataSpace src;
-            while (offset < len) {
-                const hsize_t count = sanisizer::min(len - offset, bsize);
-
-                for (hsize_t s = 0; s < count; ++s) {
-                    Rcpp::String curstr(svec[s]);
-                    const auto ptr = curstr.get_cstring();
-                    std::copy_n(
-                        ptr,
-                        sanisizer::min(elsize, std::strlen(ptr)),
-                        block_buffer.data() + sanisizer::product_unsafe<std::size_t>(s, elsize)
-                    );
-                }
-
-                src.setExtentSimple(1, &count);
-                src.selectAll();
-                dspace.selectHyperslab(H5S_SELECT_SET, &count, &offset);
-                dhandle.write(block_buffer.data(), stype, src, dspace);
-
-                offset += count;
+            } else {
+                const auto elsize = stype.getSize();
+                auto tmp_buffer = sanisizer::create<std::vector<char> >(elsize);
+                Rcpp::String current(svec[0]);
+                const auto ptr = current.get_cstring();
+                std::copy_n(
+                    ptr,
+                    sanisizer::min(elsize, std::strlen(ptr)),
+                    tmp_buffer.begin()
+                );
+                dhandle.write(tmp_buffer.data(), stype);
             }
         }
 

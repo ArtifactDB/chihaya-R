@@ -10,6 +10,47 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// h5_create_dataset_attribute
+SEXP h5_create_dataset_attribute(Rcpp::RObject dptr, std::string aname, Rcpp::List raw_type, Rcpp::RObject raw_dim);
+RcppExport SEXP _chihaya_h5_create_dataset_attribute(SEXP dptrSEXP, SEXP anameSEXP, SEXP raw_typeSEXP, SEXP raw_dimSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type dptr(dptrSEXP);
+    Rcpp::traits::input_parameter< std::string >::type aname(anameSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type raw_type(raw_typeSEXP);
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type raw_dim(raw_dimSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_create_dataset_attribute(dptr, aname, raw_type, raw_dim));
+    return rcpp_result_gen;
+END_RCPP
+}
+// h5_create_group_attribute
+SEXP h5_create_group_attribute(Rcpp::RObject gptr, std::string aname, Rcpp::List raw_type, Rcpp::RObject raw_dim);
+RcppExport SEXP _chihaya_h5_create_group_attribute(SEXP gptrSEXP, SEXP anameSEXP, SEXP raw_typeSEXP, SEXP raw_dimSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type gptr(gptrSEXP);
+    Rcpp::traits::input_parameter< std::string >::type aname(anameSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type raw_type(raw_typeSEXP);
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type raw_dim(raw_dimSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_create_group_attribute(gptr, aname, raw_type, raw_dim));
+    return rcpp_result_gen;
+END_RCPP
+}
+// h5_create_dataset
+SEXP h5_create_dataset(Rcpp::RObject gptr, std::string dname, Rcpp::List raw_type, Rcpp::RObject raw_dim, int compress, Rcpp::RObject raw_chunks);
+RcppExport SEXP _chihaya_h5_create_dataset(SEXP gptrSEXP, SEXP dnameSEXP, SEXP raw_typeSEXP, SEXP raw_dimSEXP, SEXP compressSEXP, SEXP raw_chunksSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type gptr(gptrSEXP);
+    Rcpp::traits::input_parameter< std::string >::type dname(dnameSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type raw_type(raw_typeSEXP);
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type raw_dim(raw_dimSEXP);
+    Rcpp::traits::input_parameter< int >::type compress(compressSEXP);
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type raw_chunks(raw_chunksSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_create_dataset(gptr, dname, raw_type, raw_dim, compress, raw_chunks));
+    return rcpp_result_gen;
+END_RCPP
+}
 // h5_create_file
 SEXP h5_create_file(std::string path);
 RcppExport SEXP _chihaya_h5_create_file(SEXP pathSEXP) {
@@ -20,25 +61,106 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// h5_create_vector
-SEXP h5_create_vector(Rcpp::RObject handle, std::string name, Rcpp::List type, Rcpp::RObject len, int compress, Rcpp::RObject chunk_size);
-RcppExport SEXP _chihaya_h5_create_vector(SEXP handleSEXP, SEXP nameSEXP, SEXP typeSEXP, SEXP lenSEXP, SEXP compressSEXP, SEXP chunk_sizeSEXP) {
+// h5_create_group
+SEXP h5_create_group(Rcpp::RObject gptr, std::string gname);
+RcppExport SEXP _chihaya_h5_create_group(SEXP gptrSEXP, SEXP gnameSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< Rcpp::RObject >::type handle(handleSEXP);
-    Rcpp::traits::input_parameter< std::string >::type name(nameSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type type(typeSEXP);
-    Rcpp::traits::input_parameter< Rcpp::RObject >::type len(lenSEXP);
-    Rcpp::traits::input_parameter< int >::type compress(compressSEXP);
-    Rcpp::traits::input_parameter< Rcpp::RObject >::type chunk_size(chunk_sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(h5_create_vector(handle, name, type, len, compress, chunk_size));
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type gptr(gptrSEXP);
+    Rcpp::traits::input_parameter< std::string >::type gname(gnameSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_create_group(gptr, gname));
+    return rcpp_result_gen;
+END_RCPP
+}
+// h5_open_dataset
+SEXP h5_open_dataset(Rcpp::RObject gptr, std::string dname);
+RcppExport SEXP _chihaya_h5_open_dataset(SEXP gptrSEXP, SEXP dnameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type gptr(gptrSEXP);
+    Rcpp::traits::input_parameter< std::string >::type dname(dnameSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_open_dataset(gptr, dname));
+    return rcpp_result_gen;
+END_RCPP
+}
+// h5_open_file
+SEXP h5_open_file(std::string path, bool read_only);
+RcppExport SEXP _chihaya_h5_open_file(SEXP pathSEXP, SEXP read_onlySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< std::string >::type path(pathSEXP);
+    Rcpp::traits::input_parameter< bool >::type read_only(read_onlySEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_open_file(path, read_only));
+    return rcpp_result_gen;
+END_RCPP
+}
+// h5_open_group
+SEXP h5_open_group(Rcpp::RObject gptr, std::string gname);
+RcppExport SEXP _chihaya_h5_open_group(SEXP gptrSEXP, SEXP gnameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type gptr(gptrSEXP);
+    Rcpp::traits::input_parameter< std::string >::type gname(gnameSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_open_group(gptr, gname));
+    return rcpp_result_gen;
+END_RCPP
+}
+// h5_read_attribute
+Rcpp::List h5_read_attribute(Rcpp::RObject aptr);
+RcppExport SEXP _chihaya_h5_read_attribute(SEXP aptrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type aptr(aptrSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_read_attribute(aptr));
+    return rcpp_result_gen;
+END_RCPP
+}
+// h5_read_dataset
+Rcpp::List h5_read_dataset(Rcpp::RObject dptr);
+RcppExport SEXP _chihaya_h5_read_dataset(SEXP dptrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type dptr(dptrSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_read_dataset(dptr));
+    return rcpp_result_gen;
+END_RCPP
+}
+// h5_write_attribute
+SEXP h5_write_attribute(Rcpp::RObject aptr, Rcpp::RObject vec);
+RcppExport SEXP _chihaya_h5_write_attribute(SEXP aptrSEXP, SEXP vecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type aptr(aptrSEXP);
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type vec(vecSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_write_attribute(aptr, vec));
+    return rcpp_result_gen;
+END_RCPP
+}
+// h5_write_dataset
+SEXP h5_write_dataset(Rcpp::RObject dptr, Rcpp::RObject vec);
+RcppExport SEXP _chihaya_h5_write_dataset(SEXP dptrSEXP, SEXP vecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type dptr(dptrSEXP);
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type vec(vecSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_write_dataset(dptr, vec));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_chihaya_h5_create_dataset_attribute", (DL_FUNC) &_chihaya_h5_create_dataset_attribute, 4},
+    {"_chihaya_h5_create_group_attribute", (DL_FUNC) &_chihaya_h5_create_group_attribute, 4},
+    {"_chihaya_h5_create_dataset", (DL_FUNC) &_chihaya_h5_create_dataset, 6},
     {"_chihaya_h5_create_file", (DL_FUNC) &_chihaya_h5_create_file, 1},
-    {"_chihaya_h5_create_vector", (DL_FUNC) &_chihaya_h5_create_vector, 6},
+    {"_chihaya_h5_create_group", (DL_FUNC) &_chihaya_h5_create_group, 2},
+    {"_chihaya_h5_open_dataset", (DL_FUNC) &_chihaya_h5_open_dataset, 2},
+    {"_chihaya_h5_open_file", (DL_FUNC) &_chihaya_h5_open_file, 2},
+    {"_chihaya_h5_open_group", (DL_FUNC) &_chihaya_h5_open_group, 2},
+    {"_chihaya_h5_read_attribute", (DL_FUNC) &_chihaya_h5_read_attribute, 1},
+    {"_chihaya_h5_read_dataset", (DL_FUNC) &_chihaya_h5_read_dataset, 1},
+    {"_chihaya_h5_write_attribute", (DL_FUNC) &_chihaya_h5_write_attribute, 2},
+    {"_chihaya_h5_write_dataset", (DL_FUNC) &_chihaya_h5_write_dataset, 2},
     {NULL, NULL, 0}
 };
 

@@ -2,18 +2,32 @@
 #include "H5Cpp.h"
 
 #include "utils.h"
+#include "traverse_array_by_chunk.h"
+#include "VlenReclaimer.h"
+#include "cast_to_double.h"
 
 #include <cstddef>
 #include <algorithm>
-#include <cstring>
+#include <cstdint>
 
-static H5T_conv_ret_t handle_conversion_error(H5T_conv_except_t, hid_t, hid_t, void*, void*, void* user_data) {
-    *reinterpret_cast<int*>(user_data) = 1;
-    return H5T_CONV_HANDLED;
+template<typename OuterLoop_, typename InnerLoop_>
+void read_array_by_chunk(
+    const std::vector<hsize_t>& dims,
+    const std::vector<hsize_t>& chunkdims,
+    OuterLoop_ outer_loop,
+    InnerLoop_ inner_loop
+) {
+    traverse_array_by_chunk(
+        dims,
+        chunkdims,
+        std::move(outer_loop),
+        std::move(inner_loop),
+        [&](const H5::DataSpace& file_space, const H5::DataSpace& mem_space) -> void {}
+    );
 }
 
 //[[Rcpp::export(rng=false)]]
-Rcpp::List h5_read_dataset(Rcpp::RObject dptr, std::size_t block_size_bytes) {
+Rcpp::List h5_read_dataset(Rcpp::RObject dptr) {
     auto& dhandle = extract_dataset(dptr);
 
     auto dspace = dhandle.getSpace();
@@ -49,21 +63,78 @@ Rcpp::List h5_read_dataset(Rcpp::RObject dptr, std::size_t block_size_bytes) {
 
         } else {
             // If it's too large for a 32-bit integer, we try to convert it to double-precision.
+            // We do this chunk by chunk to avoid allocating more memory than we need.
             auto dvec = sanisizer::create<Rcpp::NumericVector>(len);
-            H5::DSetMemXferPropList xplist(H5::DSetMemXferPropList::DEFAULT);
-            int failed = 0;
-            xplist.setTypeConvCB(&handle_conversion_error, &failed);
 
-            dhandle.read(
-                static_cast<double*>(dvec.begin()),
-                H5::PredType::NATIVE_DOUBLE,
-                dspace,
-                dspace,
-                xplist
-            );
-            if (failed) {
-                throw std::runtime_error("cannot accurately convert large integers to double-precision");
+            if (ndims) {
+                auto chunkdims = extract_chunk_dims(dhandle.getCreatePlist(), dims);
+                const hsize_t chunklen = get_chunk_length(chunkdims);
+
+                if (dsize == 4 && dsign == H5T_SGN_NONE) {
+                    auto tmpvec = sanisizer::create<std::vector<std::uint32_t> >(chunklen);
+                    read_array_by_chunk(
+                        dims,
+                        chunkdims, 
+                        [&](const H5::DataSpace& file_space, const H5::DataSpace& mem_space) -> bool {
+                            dhandle.read(tmpvec.data(), H5::PredType::NATIVE_UINT32, mem_space, file_space);
+                            return true;
+                        },
+                        [&](hsize_t chunk_offset, hsize_t full_offset) -> void {
+                            dvec[full_offset] = cast_to_double(tmpvec[chunk_offset]);
+                        }
+                    );
+
+                } else if (dsize <= 8 && dsign == H5T_SGN_2) {
+                    auto tmpvec = sanisizer::create<std::vector<std::int64_t> >(chunklen);
+                    read_array_by_chunk(
+                        dims,
+                        chunkdims, 
+                        [&](const H5::DataSpace& file_space, const H5::DataSpace& mem_space) -> bool {
+                            dhandle.read(tmpvec.data(), H5::PredType::NATIVE_INT64, mem_space, file_space);
+                            return true;
+                        },
+                        [&](hsize_t chunk_offset, hsize_t full_offset) -> void {
+                            dvec[full_offset] = cast_to_double(tmpvec[chunk_offset]);
+                        }
+                    );
+
+                } else if (dsize <= 8 && dsign == H5T_SGN_NONE) {
+                    auto tmpvec = sanisizer::create<std::vector<std::uint64_t> >(chunklen);
+                    read_array_by_chunk(
+                        dims,
+                        chunkdims, 
+                        [&](const H5::DataSpace& file_space, const H5::DataSpace& mem_space) -> bool {
+                            dhandle.read(tmpvec.data(), H5::PredType::NATIVE_UINT64, mem_space, file_space);
+                            return true;
+                        },
+                        [&](hsize_t chunk_offset, hsize_t full_offset) -> void {
+                            dvec[full_offset] = cast_to_double(tmpvec[chunk_offset]);
+                        }
+                    );
+
+                } else {
+                    throw std::runtime_error("unsupported HDF5 integer type");
+                }
+
+            } else {
+                // Much simpler logic for scalars.
+                if (dsize == 4 && dsign == H5T_SGN_NONE) {
+                    std::uint32_t tmp;
+                    dhandle.read(&tmp, H5::PredType::NATIVE_UINT32);
+                    dvec[0] = cast_to_double(tmp);
+                } else if (dsize <= 8 && dsign == H5T_SGN_2) {
+                    std::int64_t tmp;
+                    dhandle.read(&tmp, H5::PredType::NATIVE_INT64);
+                    dvec[0] = cast_to_double(tmp);
+                } else if (dsize <= 8 && dsign == H5T_SGN_NONE) {
+                    std::uint64_t tmp;
+                    dhandle.read(&tmp, H5::PredType::NATIVE_UINT64);
+                    dvec[0] = cast_to_double(tmp);
+                } else {
+                    throw std::runtime_error("unsupported HDF5 integer type");
+                }
             }
+
             output["value"] = dvec;
             output["type"] = "integer";
         }
@@ -79,62 +150,60 @@ Rcpp::List h5_read_dataset(Rcpp::RObject dptr, std::size_t block_size_bytes) {
         const auto enc = (stype.getCset() == H5T_CSET_ASCII ? CE_ANY : CE_UTF8);
         auto svec = sanisizer::create<Rcpp::StringVector>(len);
 
-        if (stype.isVariableStr()) {
-            constexpr auto elsize = sizeof(char*);
-            const auto bsize = sanisizer::max(1, block_size_bytes / elsize);
-            std::vector<const char*> block_ptrs;
-            block_ptrs.reserve(bsize);
+        if (ndims) {
+            // Here, the idea is to only load each chunk in at a time, and convert it to an R string accordingly. 
+            auto chunkdims = extract_chunk_dims(dhandle.getCreatePlist(), dims);
+            const hsize_t chunklen = get_chunk_length(chunkdims);
 
-            hsize_t offset = 0;
-            H5::DataSpace src;
-            H5::DSetMemXferPropList xplist(H5::DSetMemXferPropList::DEFAULT);
-            while (offset < len) {
-                const hsize_t count = sanisizer::min(len - offset, bsize);
-
-                src.setExtentSimple(1, &count);
-                src.selectAll();
-                dspace.selectHyperslab(H5S_SELECT_SET, &count, &offset);
-                dhandle.read(block_ptrs.data(), stype, src, dspace, xplist);
-                
-                try {
-                    for (hsize_t i = 0; i < count; ++i) {
-                        svec[offset + i] = Rcpp::String(block_ptrs[i], enc);
+            if (stype.isVariableStr()) {
+                auto block_ptrs = sanisizer::create<std::vector<const char*> >(chunklen);
+                read_array_by_chunk(
+                    dims,
+                    chunkdims, 
+                    [&](const H5::DataSpace& file_space, const H5::DataSpace& mem_space) -> VlenReclaimer {
+                        dhandle.read(block_ptrs.data(), stype, mem_space, file_space);
+                        return VlenReclaimer(block_ptrs.data(), stype, mem_space);
+                    },
+                    [&](hsize_t chunk_offset, hsize_t full_offset) -> void {
+                        svec[full_offset] = Rcpp::String(block_ptrs[chunk_offset], enc);
                     }
-                } catch (...) {
-                    H5Treclaim(stype.getId(), src.getId(), xplist.getId(), block_ptrs.data());
-                    throw;
-                }
+                );
 
-                H5Treclaim(stype.getId(), src.getId(), xplist.getId(), block_ptrs.data());
-                offset += count;
+            } else {
+                const auto elsize = stype.getSize();
+                std::vector<char> block_buffer(sanisizer::product<typename std::vector<char>::size_type>(chunklen, elsize));
+                std::vector<char> tmp_buffer(sanisizer::sum<typename std::vector<char>::size_type>(elsize, 1));
+                read_array_by_chunk(
+                    dims,
+                    chunkdims, 
+                    [&](const H5::DataSpace& file_space, const H5::DataSpace& mem_space) -> bool {
+                        dhandle.read(block_buffer.data(), stype, mem_space, file_space);
+                        return true;
+                    },
+                    [&](hsize_t chunk_offset, hsize_t full_offset) -> void {
+                        std::copy_n(
+                            block_buffer.data() + sanisizer::product_unsafe<std::size_t>(chunk_offset, elsize),
+                            elsize,
+                            tmp_buffer.begin()
+                        );
+                        svec[full_offset] = Rcpp::String(tmp_buffer.data(), enc);
+                    }
+                );
             }
 
         } else {
-            const auto elsize = stype.getSize();
-            const auto bsize = sanisizer::max(1, block_size_bytes / elsize);
-            auto block_buffer = sanisizer::create<std::vector<char> >(sanisizer::product_unsafe<std::size_t>(bsize, elsize));
-            auto tmp_buffer = sanisizer::create<std::vector<char> >(sanisizer::sum<std::size_t>(elsize, 1));
-
-            hsize_t offset = 0;
-            H5::DataSpace src;
-            while (offset < len) {
-                const hsize_t count = sanisizer::min(len - offset, bsize);
-
-                src.setExtentSimple(1, &count);
-                src.selectAll();
-                dspace.selectHyperslab(H5S_SELECT_SET, &count, &offset);
-                dhandle.write(block_buffer.data(), stype, src, dspace);
-
-                for (hsize_t i = 0; i < count; ++i) {
-                    std::copy_n(
-                        block_buffer.data() + sanisizer::product_unsafe<std::size_t>(i, elsize),
-                        elsize,
-                        tmp_buffer.begin()
-                    );
-                    svec[offset + i] = Rcpp::String(tmp_buffer.data(), enc);
-                }
-
-                offset += count;
+            // Of course, for scalar strings, life is much easier.
+            H5::DataSpace dest(H5S_SCALAR);
+            if (stype.isVariableStr()) {
+                std::vector<const char*> block_ptrs(1);
+                dhandle.read(block_ptrs.data(), stype, dest);
+                VlenReclaimer rclm(block_ptrs.data(), stype, dest);
+                svec[0] = Rcpp::String(block_ptrs[0], enc);
+            } else {
+                const auto elsize = stype.getSize();
+                std::vector<char> block_buffer(sanisizer::sum<typename std::vector<char>::size_type>(elsize, 1));
+                dhandle.read(block_buffer.data(), stype, dest);
+                svec[0] = Rcpp::String(block_buffer.data(), enc);
             }
         }
 

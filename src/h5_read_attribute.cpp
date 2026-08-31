@@ -2,15 +2,12 @@
 #include "H5Cpp.h"
 
 #include "utils.h"
+#include "VlenReclaimer.h"
+#include "cast_to_double.h"
 
 #include <cstddef>
 #include <algorithm>
-#include <cstring>
-
-H5T_conv_ret_t handle_conversion_error(H5T_conv_except_t, hid_t, hid_t, void*, void*, void* user_data) {
-    *reinterpret_cast<int*>(user_data) = 1;
-    return H5T_CONV_HANDLED;
-}
+#include <cstdint>
 
 //[[Rcpp::export(rng=false)]]
 Rcpp::List h5_read_attribute(Rcpp::RObject aptr) {
@@ -48,9 +45,25 @@ Rcpp::List h5_read_attribute(Rcpp::RObject aptr) {
             output["type"] = "integer";
 
         } else {
-            // If it's too large for a 32-bit integer, we try to convert it to double-precision.
             auto dvec = sanisizer::create<Rcpp::NumericVector>(len);
-            ahandle.read(H5::PredType::NATIVE_DOUBLE, static_cast<double*>(dvec.begin()));
+
+            // If it's too large for a 32-bit integer, we try to convert it to double-precision.
+            if (dsize == 4 && dsign == H5T_SGN_NONE) {
+                auto tmpvec = sanisizer::create<std::vector<std::uint32_t> >(len);
+                ahandle.read(H5::PredType::NATIVE_UINT32, tmpvec.data());
+                cast_to_double(tmpvec, dvec.begin());
+            } else if (dsize <= 8 && dsign == H5T_SGN_2) {
+                auto tmpvec = sanisizer::create<std::vector<std::int64_t> >(len);
+                ahandle.read(H5::PredType::NATIVE_INT64, tmpvec.data());
+                cast_to_double(tmpvec, dvec.begin());
+            } else if (dsize <= 8 && dsign == H5T_SGN_NONE) {
+                auto tmpvec = sanisizer::create<std::vector<std::uint64_t> >(len);
+                ahandle.read(H5::PredType::NATIVE_UINT64, tmpvec.data());
+                cast_to_double(tmpvec, dvec.begin());
+            } else {
+                throw std::runtime_error("unsupported HDF5 integer type");
+            }
+
             output["value"] = dvec;
             output["type"] = "integer";
         }
@@ -69,16 +82,10 @@ Rcpp::List h5_read_attribute(Rcpp::RObject aptr) {
         if (stype.isVariableStr()) {
             auto block_ptrs = sanisizer::create<std::vector<const char*> >(len);
             ahandle.read(stype, block_ptrs.data());
-            auto src = ahandle.getSpace();
-            try {
-                for (I<decltype(len)> i = 0; i < len; ++i) {
-                    svec[i] = Rcpp::String(block_ptrs[i], enc);
-                }
-            } catch (...) {
-                H5Treclaim(stype.getId(), src.getId(), H5P_DEFAULT, block_ptrs.data());
-                throw;
+            VlenReclaimer reclaimer(block_ptrs.data(), stype, aspace);
+            for (I<decltype(len)> i = 0; i < len; ++i) {
+                svec[i] = Rcpp::String(block_ptrs[i], enc);
             }
-            H5Treclaim(stype.getId(), src.getId(), H5P_DEFAULT, block_ptrs.data());
 
         } else {
             const auto elsize = stype.getSize();
