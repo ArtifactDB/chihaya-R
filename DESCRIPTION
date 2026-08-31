@@ -2,12 +2,13 @@ Package: chihaya
 Title: HDF5 Bindings for Alabaster 
 Description: 
     Low-level utilities for interacting with HDF5 files via C++ bindings to the Rhdf5lib package.
-    This is intended for use by the various alabaster.* packages,
-    where it provides more control than the rhdf5 package.
+    This is intended to be used by the various alabaster.* packages, where it provides more control than the rhdf5 package.
 Authors@R: person("Aaron", "Lun", role=c("cre", "aut"), email="infinite.monkeys.with.keyboards@gmail.com") 
 Version: 1.1.2
 Date: 2023-10-07
 License: GPL-3
+Imports:
+    Rcpp
 Depends: 
     testthat,
     rmarkdown,
@@ -21,7 +22,7 @@ VignetteBuilder: knitr
 BugReports: https://github.com/ArtifactDB/chihaya-R/issues
 URL: https://github.com/ArtifactDB/chihaya-R
 SystemRequirements: C++17, GNU make
-RoxygenNote: 7.2.3
 biocViews:
     DataImport,
     DataRepresentation
+Config/roxygen2/version: 8.1.0

@@ -10,6 +10,39 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// h5_group_attribute_exists
+bool h5_group_attribute_exists(Rcpp::RObject gptr, std::string aname);
+RcppExport SEXP _chihaya_h5_group_attribute_exists(SEXP gptrSEXP, SEXP anameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type gptr(gptrSEXP);
+    Rcpp::traits::input_parameter< std::string >::type aname(anameSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_group_attribute_exists(gptr, aname));
+    return rcpp_result_gen;
+END_RCPP
+}
+// h5_dataset_attribute_exists
+bool h5_dataset_attribute_exists(Rcpp::RObject dptr, std::string aname);
+RcppExport SEXP _chihaya_h5_dataset_attribute_exists(SEXP dptrSEXP, SEXP anameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type dptr(dptrSEXP);
+    Rcpp::traits::input_parameter< std::string >::type aname(anameSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_dataset_attribute_exists(dptr, aname));
+    return rcpp_result_gen;
+END_RCPP
+}
+// h5_child_exists
+SEXP h5_child_exists(Rcpp::RObject gptr, std::string name);
+RcppExport SEXP _chihaya_h5_child_exists(SEXP gptrSEXP, SEXP nameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type gptr(gptrSEXP);
+    Rcpp::traits::input_parameter< std::string >::type name(nameSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_child_exists(gptr, name));
+    return rcpp_result_gen;
+END_RCPP
+}
 // h5_create_dataset_attribute
 SEXP h5_create_dataset_attribute(Rcpp::RObject dptr, std::string aname, Rcpp::List raw_type, Rcpp::RObject raw_dim);
 RcppExport SEXP _chihaya_h5_create_dataset_attribute(SEXP dptrSEXP, SEXP anameSEXP, SEXP raw_typeSEXP, SEXP raw_dimSEXP) {
@@ -72,6 +105,68 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// h5_list_group_attributes
+Rcpp::StringVector h5_list_group_attributes(Rcpp::RObject gptr);
+RcppExport SEXP _chihaya_h5_list_group_attributes(SEXP gptrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type gptr(gptrSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_list_group_attributes(gptr));
+    return rcpp_result_gen;
+END_RCPP
+}
+// h5_list_dataset_attributes
+Rcpp::StringVector h5_list_dataset_attributes(Rcpp::RObject dptr);
+RcppExport SEXP _chihaya_h5_list_dataset_attributes(SEXP dptrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type dptr(dptrSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_list_dataset_attributes(dptr));
+    return rcpp_result_gen;
+END_RCPP
+}
+// h5_list_children
+Rcpp::List h5_list_children(Rcpp::RObject gptr);
+RcppExport SEXP _chihaya_h5_list_children(SEXP gptrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type gptr(gptrSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_list_children(gptr));
+    return rcpp_result_gen;
+END_RCPP
+}
+// h5_open_group_attribute
+SEXP h5_open_group_attribute(Rcpp::RObject gptr, std::string aname);
+RcppExport SEXP _chihaya_h5_open_group_attribute(SEXP gptrSEXP, SEXP anameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type gptr(gptrSEXP);
+    Rcpp::traits::input_parameter< std::string >::type aname(anameSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_open_group_attribute(gptr, aname));
+    return rcpp_result_gen;
+END_RCPP
+}
+// h5_open_dataset_attribute
+SEXP h5_open_dataset_attribute(Rcpp::RObject dptr, std::string aname);
+RcppExport SEXP _chihaya_h5_open_dataset_attribute(SEXP dptrSEXP, SEXP anameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type dptr(dptrSEXP);
+    Rcpp::traits::input_parameter< std::string >::type aname(anameSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_open_dataset_attribute(dptr, aname));
+    return rcpp_result_gen;
+END_RCPP
+}
+// h5_close_attribute
+SEXP h5_close_attribute(Rcpp::RObject aptr);
+RcppExport SEXP _chihaya_h5_close_attribute(SEXP aptrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type aptr(aptrSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_close_attribute(aptr));
+    return rcpp_result_gen;
+END_RCPP
+}
 // h5_open_dataset
 SEXP h5_open_dataset(Rcpp::RObject gptr, std::string dname);
 RcppExport SEXP _chihaya_h5_open_dataset(SEXP gptrSEXP, SEXP dnameSEXP) {
@@ -80,6 +175,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::RObject >::type gptr(gptrSEXP);
     Rcpp::traits::input_parameter< std::string >::type dname(dnameSEXP);
     rcpp_result_gen = Rcpp::wrap(h5_open_dataset(gptr, dname));
+    return rcpp_result_gen;
+END_RCPP
+}
+// h5_close_dataset
+SEXP h5_close_dataset(Rcpp::RObject dptr);
+RcppExport SEXP _chihaya_h5_close_dataset(SEXP dptrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type dptr(dptrSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_close_dataset(dptr));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -102,6 +207,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::RObject >::type gptr(gptrSEXP);
     Rcpp::traits::input_parameter< std::string >::type gname(gnameSEXP);
     rcpp_result_gen = Rcpp::wrap(h5_open_group(gptr, gname));
+    return rcpp_result_gen;
+END_RCPP
+}
+// h5_close_group
+SEXP h5_close_group(Rcpp::RObject gptr);
+RcppExport SEXP _chihaya_h5_close_group(SEXP gptrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::RObject >::type gptr(gptrSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_close_group(gptr));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -149,14 +264,25 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_chihaya_h5_group_attribute_exists", (DL_FUNC) &_chihaya_h5_group_attribute_exists, 2},
+    {"_chihaya_h5_dataset_attribute_exists", (DL_FUNC) &_chihaya_h5_dataset_attribute_exists, 2},
+    {"_chihaya_h5_child_exists", (DL_FUNC) &_chihaya_h5_child_exists, 2},
     {"_chihaya_h5_create_dataset_attribute", (DL_FUNC) &_chihaya_h5_create_dataset_attribute, 4},
     {"_chihaya_h5_create_group_attribute", (DL_FUNC) &_chihaya_h5_create_group_attribute, 4},
     {"_chihaya_h5_create_dataset", (DL_FUNC) &_chihaya_h5_create_dataset, 6},
     {"_chihaya_h5_create_file", (DL_FUNC) &_chihaya_h5_create_file, 1},
     {"_chihaya_h5_create_group", (DL_FUNC) &_chihaya_h5_create_group, 2},
+    {"_chihaya_h5_list_group_attributes", (DL_FUNC) &_chihaya_h5_list_group_attributes, 1},
+    {"_chihaya_h5_list_dataset_attributes", (DL_FUNC) &_chihaya_h5_list_dataset_attributes, 1},
+    {"_chihaya_h5_list_children", (DL_FUNC) &_chihaya_h5_list_children, 1},
+    {"_chihaya_h5_open_group_attribute", (DL_FUNC) &_chihaya_h5_open_group_attribute, 2},
+    {"_chihaya_h5_open_dataset_attribute", (DL_FUNC) &_chihaya_h5_open_dataset_attribute, 2},
+    {"_chihaya_h5_close_attribute", (DL_FUNC) &_chihaya_h5_close_attribute, 1},
     {"_chihaya_h5_open_dataset", (DL_FUNC) &_chihaya_h5_open_dataset, 2},
+    {"_chihaya_h5_close_dataset", (DL_FUNC) &_chihaya_h5_close_dataset, 1},
     {"_chihaya_h5_open_file", (DL_FUNC) &_chihaya_h5_open_file, 2},
     {"_chihaya_h5_open_group", (DL_FUNC) &_chihaya_h5_open_group, 2},
+    {"_chihaya_h5_close_group", (DL_FUNC) &_chihaya_h5_close_group, 1},
     {"_chihaya_h5_read_attribute", (DL_FUNC) &_chihaya_h5_read_attribute, 1},
     {"_chihaya_h5_read_dataset", (DL_FUNC) &_chihaya_h5_read_dataset, 1},
     {"_chihaya_h5_write_attribute", (DL_FUNC) &_chihaya_h5_write_attribute, 2},
