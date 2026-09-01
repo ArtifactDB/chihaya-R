@@ -16,7 +16,8 @@ SEXP h5_create_dataset(
     Rcpp::List raw_type,
     Rcpp::RObject raw_dim,
     int compress,
-    Rcpp::RObject raw_chunks 
+    Rcpp::RObject raw_chunks,
+    bool is_vlen_str
 ) {
     const auto dims = extract_dimensions(raw_dim);
     const auto ndim = dims.size();
@@ -28,9 +29,12 @@ SEXP h5_create_dataset(
         }
     }
 
-    H5::DSetCreatPropList cplist(H5::DSetCreatPropList::DEFAULT);
-    cplist.setFillTime(H5D_FILL_TIME_NEVER);
+    H5::DSetCreatPropList cplist;
     H5Pset_obj_track_times(cplist.getId(), false);
+    // Not really sure, but VL datasets don't like it if you don't fill it.
+    if (!is_vlen_str) {
+        cplist.setFillTime(H5D_FILL_TIME_NEVER);
+    }
 
     if (ndim > 0 && compress && !is_empty) {
         cplist.setShuffle();
@@ -47,7 +51,7 @@ SEXP h5_create_dataset(
 
     H5::Group& ghandle = extract_group(gptr);
     auto dtype = decode_data_type(raw_type);
-    
+
     H5::DataSpace dspace;
     if (ndim) {
         dspace = H5::DataSpace(sanisizer::cast<int>(ndim), dims.data());

@@ -9,8 +9,8 @@ h5_dataset_attribute_exists <- function(dptr, aname) {
     .Call('_chihaya_h5_dataset_attribute_exists', PACKAGE = 'chihaya', dptr, aname)
 }
 
-h5_child_exists <- function(gptr, name) {
-    .Call('_chihaya_h5_child_exists', PACKAGE = 'chihaya', gptr, name)
+h5_child_exists <- function(gptr, name, report_type) {
+    .Call('_chihaya_h5_child_exists', PACKAGE = 'chihaya', gptr, name, report_type)
 }
 
 h5_create_dataset_attribute <- function(dptr, aname, raw_type, raw_dim) {
@@ -21,8 +21,8 @@ h5_create_group_attribute <- function(gptr, aname, raw_type, raw_dim) {
     .Call('_chihaya_h5_create_group_attribute', PACKAGE = 'chihaya', gptr, aname, raw_type, raw_dim)
 }
 
-h5_create_dataset <- function(gptr, dname, raw_type, raw_dim, compress, raw_chunks) {
-    .Call('_chihaya_h5_create_dataset', PACKAGE = 'chihaya', gptr, dname, raw_type, raw_dim, compress, raw_chunks)
+h5_create_dataset <- function(gptr, dname, raw_type, raw_dim, compress, raw_chunks, is_vlen_str) {
+    .Call('_chihaya_h5_create_dataset', PACKAGE = 'chihaya', gptr, dname, raw_type, raw_dim, compress, raw_chunks, is_vlen_str)
 }
 
 h5_create_file <- function(path) {

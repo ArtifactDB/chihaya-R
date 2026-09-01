@@ -59,9 +59,9 @@ void traverse_array_by_chunk(
     H5::DataSpace mem_space;
 
     while (true) {
-        file_space.setExtentSimple(ndim, counts.data());
-        file_space.selectAll();
-        mem_space.selectHyperslab(H5S_SELECT_SET, counts.data(), offsets.data()); 
+        mem_space.setExtentSimple(ndim, counts.data());
+        mem_space.selectAll();
+        file_space.selectHyperslab(H5S_SELECT_SET, counts.data(), offsets.data()); 
         [[maybe_unused]] auto scope = pre_outer_loop(file_space, mem_space);
 
         std::fill(position.begin(), position.end(), 0);

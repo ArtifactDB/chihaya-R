@@ -44,7 +44,8 @@ createDataSet <- function(handle, name, type, dims, compress = 6, chunkdims = NU
         raw_type = type,
         raw_dim = as.numeric(dims),
         compress = compress,
-        raw_chunks = as.numeric(chunkdims)
+        raw_chunks = as.numeric(chunkdims),
+        is_vlen_str = (type[[1]] == "string" && type[[2]] == 0L)
     )
 
     attr(ptr, "type") <- "dataset"

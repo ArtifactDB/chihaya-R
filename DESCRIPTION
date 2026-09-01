@@ -9,7 +9,7 @@ Date: 2023-10-07
 License: GPL-3
 Imports:
     Rcpp
-Depends: 
+Suggests: 
     testthat,
     rmarkdown,
     BiocStyle,

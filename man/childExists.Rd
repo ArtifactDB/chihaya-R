@@ -4,15 +4,20 @@
 \alias{childExists}
 \title{Check if a child object exists}
 \usage{
-childExists(handle, name)
+childExists(handle, name, report.type = FALSE)
 }
 \arguments{
 \item{handle}{External pointer to a HDF5 Group.}
 
 \item{name}{String containing the name of the child object.}
+
+\item{report.type}{Boolean indicating whether to report the type of the child object, if it exists.}
 }
 \value{
-Boolean indicating whether the named child object exists.
+If \code{report.type = FALSE}, a boolean indicating whether the child exists in \code{handle}.
+
+If \code{report.type = TRUE}, a string specifying whether the named child object is a \code{"group"}, \code{"dataset"} or \code{"unknown"}.
+If no child object exists at \code{name}, \code{NULL} is returned instead.
 }
 \description{
 Check if a child object exists in a HDF5 Group.

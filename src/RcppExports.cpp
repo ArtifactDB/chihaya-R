@@ -33,13 +33,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // h5_child_exists
-SEXP h5_child_exists(Rcpp::RObject gptr, std::string name);
-RcppExport SEXP _chihaya_h5_child_exists(SEXP gptrSEXP, SEXP nameSEXP) {
+SEXP h5_child_exists(Rcpp::RObject gptr, std::string name, bool report_type);
+RcppExport SEXP _chihaya_h5_child_exists(SEXP gptrSEXP, SEXP nameSEXP, SEXP report_typeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< Rcpp::RObject >::type gptr(gptrSEXP);
     Rcpp::traits::input_parameter< std::string >::type name(nameSEXP);
-    rcpp_result_gen = Rcpp::wrap(h5_child_exists(gptr, name));
+    Rcpp::traits::input_parameter< bool >::type report_type(report_typeSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_child_exists(gptr, name, report_type));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -70,8 +71,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // h5_create_dataset
-SEXP h5_create_dataset(Rcpp::RObject gptr, std::string dname, Rcpp::List raw_type, Rcpp::RObject raw_dim, int compress, Rcpp::RObject raw_chunks);
-RcppExport SEXP _chihaya_h5_create_dataset(SEXP gptrSEXP, SEXP dnameSEXP, SEXP raw_typeSEXP, SEXP raw_dimSEXP, SEXP compressSEXP, SEXP raw_chunksSEXP) {
+SEXP h5_create_dataset(Rcpp::RObject gptr, std::string dname, Rcpp::List raw_type, Rcpp::RObject raw_dim, int compress, Rcpp::RObject raw_chunks, bool is_vlen_str);
+RcppExport SEXP _chihaya_h5_create_dataset(SEXP gptrSEXP, SEXP dnameSEXP, SEXP raw_typeSEXP, SEXP raw_dimSEXP, SEXP compressSEXP, SEXP raw_chunksSEXP, SEXP is_vlen_strSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< Rcpp::RObject >::type gptr(gptrSEXP);
@@ -80,7 +81,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::RObject >::type raw_dim(raw_dimSEXP);
     Rcpp::traits::input_parameter< int >::type compress(compressSEXP);
     Rcpp::traits::input_parameter< Rcpp::RObject >::type raw_chunks(raw_chunksSEXP);
-    rcpp_result_gen = Rcpp::wrap(h5_create_dataset(gptr, dname, raw_type, raw_dim, compress, raw_chunks));
+    Rcpp::traits::input_parameter< bool >::type is_vlen_str(is_vlen_strSEXP);
+    rcpp_result_gen = Rcpp::wrap(h5_create_dataset(gptr, dname, raw_type, raw_dim, compress, raw_chunks, is_vlen_str));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -266,10 +268,10 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_chihaya_h5_group_attribute_exists", (DL_FUNC) &_chihaya_h5_group_attribute_exists, 2},
     {"_chihaya_h5_dataset_attribute_exists", (DL_FUNC) &_chihaya_h5_dataset_attribute_exists, 2},
-    {"_chihaya_h5_child_exists", (DL_FUNC) &_chihaya_h5_child_exists, 2},
+    {"_chihaya_h5_child_exists", (DL_FUNC) &_chihaya_h5_child_exists, 3},
     {"_chihaya_h5_create_dataset_attribute", (DL_FUNC) &_chihaya_h5_create_dataset_attribute, 4},
     {"_chihaya_h5_create_group_attribute", (DL_FUNC) &_chihaya_h5_create_group_attribute, 4},
-    {"_chihaya_h5_create_dataset", (DL_FUNC) &_chihaya_h5_create_dataset, 6},
+    {"_chihaya_h5_create_dataset", (DL_FUNC) &_chihaya_h5_create_dataset, 7},
     {"_chihaya_h5_create_file", (DL_FUNC) &_chihaya_h5_create_file, 1},
     {"_chihaya_h5_create_group", (DL_FUNC) &_chihaya_h5_create_group, 2},
     {"_chihaya_h5_list_group_attributes", (DL_FUNC) &_chihaya_h5_list_group_attributes, 1},
