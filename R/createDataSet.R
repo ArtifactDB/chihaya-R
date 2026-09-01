@@ -35,7 +35,7 @@ createDataSet <- function(handle, name, type, dims, compress = 6, chunkdims = NU
     stopifnot("group" %in% attr(handle, "type"))
 
     if (is.null(chunkdims)) {
-        chunkdims <- ceil(dims / prod(dims) * 10000)
+        chunkdims <- ceiling(dims / prod(dims) * 10000)
     }
 
     ptr <- h5_create_dataset(

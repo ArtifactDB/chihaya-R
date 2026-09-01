@@ -8,18 +8,19 @@
 //[[Rcpp::export(rng=false)]]
 SEXP h5_child_exists(Rcpp::RObject gptr, std::string name) {
     const auto& ghandle = extract_group(gptr);
-    if (!ghandle.nameExists(name)) {
-        return R_NilValue;
-    }
 
-    auto childtype = ghandle.childObjType(name);
     Rcpp::StringVector output(1);
-    if (childtype == H5O_TYPE_GROUP) {
-        output[0] = "group";
-    } else if (childtype == H5O_TYPE_DATASET) {
-        output[0] = "dataset";
+    if (ghandle.nameExists(name)) {
+        auto childtype = ghandle.childObjType(name);
+        if (childtype == H5O_TYPE_GROUP) {
+            output[0] = "group";
+        } else if (childtype == H5O_TYPE_DATASET) {
+            output[0] = "dataset";
+        } else {
+            output[0] = "unknown";
+        }
     } else {
-        output[0] = "unknown";
+        output[0] = "absent";
     }
 
     return output;

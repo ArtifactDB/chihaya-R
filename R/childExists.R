@@ -5,7 +5,8 @@
 #' @param handle External pointer to a HDF5 Group.
 #' @param name String containing the name of the child object. 
 #'
-#' @return Boolean indicating whether the named child object exists.
+#' @return String specifying whether the named child object is a \code{"group"}, \code{"dataset"} or \code{"unknown"}.
+#' If no child object exists at \code{name}, \code{"absent"} is returned instead.
 #'
 #' @author Aaron Lun
 #' @examples

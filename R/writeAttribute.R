@@ -26,12 +26,6 @@
 #'
 #' @export
 writeAttribute <- function(handle, value) {
-    handle_type <- attr(handle, "type")
-    if ("group" %in% handle_type) {
-        h5_write_group_attribute(handle, value)
-    } else if ("dataset" %in% handle_type) {
-        h5_write_dataset_attribute(handle, value)
-    } else {
-        stop("unsupported handle type")
-    }
+    stopifnot("attribute" %in% attr(handle, "type"))
+    h5_write_attribute(handle, value)
 }
