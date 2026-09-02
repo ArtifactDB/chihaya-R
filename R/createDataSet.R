@@ -11,7 +11,7 @@
 #' @param compress Integer specifying the DEFLATE compression level.
 #' Larger values increase compression efficiency at the cost of extra compute.
 #' If set to zero, no compression is performed.
-#' @param chunkdims Numeric vector of chunk dimension extents.
+#' @param chunk.dims Numeric vector of chunk dimension extents.
 #' This should be of the same length as \code{dims}.
 #' Ignored if \code{compress = 0} or any entry of \code{dims} is zero.
 #'
@@ -31,13 +31,13 @@
 #' closeGroup(fhandle)
 #'
 #' @export
-createDataSet <- function(handle, name, type, dims, compress = 6, chunkdims = NULL) {
+createDataSet <- function(handle, name, type, dims, compress = 6, chunk.dims = NULL) {
     stopifnot("group" %in% attr(handle, "type"))
 
-    if (is.null(chunkdims) && length(dims)) {
+    if (is.null(chunk.dims) && length(dims)) {
         # Default to ~10000 elements in each chunk.
         scale <- (10000 / prod(dims)) ^ (1 / length(dims))
-        chunkdims <- ceiling(dims * scale)
+        chunk.dims <- ceiling(dims * scale)
     }
 
     ptr <- h5_create_dataset(
@@ -46,7 +46,7 @@ createDataSet <- function(handle, name, type, dims, compress = 6, chunkdims = NU
         raw_type = type,
         raw_dim = as.numeric(dims),
         compress = compress,
-        raw_chunks = as.numeric(chunkdims),
+        raw_chunks = as.numeric(chunk.dims),
         is_vlen_str = (type[[1]] == "string" && type[[2]] == 0L)
     )
 

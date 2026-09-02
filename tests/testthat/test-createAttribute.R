@@ -31,7 +31,7 @@ test_that("attributes work for groups, small integer types", {
             ahandle2 <- openAttribute(ghandle, aname)
             reloaded2 <- readAttribute(ahandle2)
             expect_identical(reloaded, reloaded2)
-            closeAttribute(ahandle)
+            closeAttribute(ahandle2)
         }
     }
 
@@ -68,7 +68,7 @@ test_that("attributes work for groups, large integer types", {
             ahandle2 <- openAttribute(ghandle, aname)
             reloaded2 <- readAttribute(ahandle2)
             expect_identical(reloaded, reloaded2)
-            closeAttribute(ahandle)
+            closeAttribute(ahandle2)
         }
     }
 
@@ -101,7 +101,7 @@ test_that("attributes work for groups, float types", {
             ahandle2 <- openAttribute(ghandle, aname)
             reloaded2 <- readAttribute(ahandle2)
             expect_identical(reloaded, reloaded2)
-            closeAttribute(ahandle)
+            closeAttribute(ahandle2)
         }
     }
 
@@ -134,7 +134,7 @@ test_that("attributes work for groups, string types", {
             ahandle2 <- openAttribute(ghandle, aname)
             reloaded2 <- readAttribute(ahandle2)
             expect_identical(reloaded, reloaded2)
-            closeAttribute(ahandle)
+            closeAttribute(ahandle2)
         }
     }
 
@@ -173,7 +173,7 @@ test_that("attributes work for dataset, small integer types", {
             ahandle2 <- openAttribute(dhandle, aname)
             reloaded2 <- readAttribute(ahandle2)
             expect_identical(reloaded, reloaded2)
-            closeAttribute(ahandle)
+            closeAttribute(ahandle2)
         }
     }
 
@@ -181,7 +181,7 @@ test_that("attributes work for dataset, small integer types", {
     closeGroup(fhandle)
 })
 
-test_that("attributes work for groups, large integer types", {
+test_that("attributes work for dataset, large integer types", {
     tmp <- tempfile(fileext = ".h5")
     fhandle <- createFile(tmp)
     dhandle <- createDataSet(fhandle, "blah", type = createFloatType(), dims = c(10, 20))
@@ -210,7 +210,7 @@ test_that("attributes work for groups, large integer types", {
             ahandle2 <- openAttribute(dhandle, aname)
             reloaded2 <- readAttribute(ahandle2)
             expect_identical(reloaded, reloaded2)
-            closeAttribute(ahandle)
+            closeAttribute(ahandle2)
         }
     }
 
@@ -218,7 +218,7 @@ test_that("attributes work for groups, large integer types", {
     closeGroup(fhandle)
 })
 
-test_that("attributes work for groups, float types", {
+test_that("attributes work for dataset, float types", {
     tmp <- tempfile(fileext = ".h5")
     fhandle <- createFile(tmp)
     dhandle <- createDataSet(fhandle, "blah", type = createStringType(), dims = 25)
@@ -243,7 +243,7 @@ test_that("attributes work for groups, float types", {
             ahandle2 <- openAttribute(dhandle, aname)
             reloaded2 <- readAttribute(ahandle2)
             expect_identical(reloaded, reloaded2)
-            closeAttribute(ahandle)
+            closeAttribute(ahandle2)
         }
     }
 
@@ -251,7 +251,7 @@ test_that("attributes work for groups, float types", {
     closeGroup(fhandle)
 })
 
-test_that("attributes work for groups, string types", {
+test_that("attributes work for dataset, string types", {
     tmp <- tempfile(fileext = ".h5")
     fhandle <- createFile(tmp)
     dhandle <- createDataSet(fhandle, "blah", type = createIntegerType(), dims = c(1,2,3))
@@ -276,7 +276,7 @@ test_that("attributes work for groups, string types", {
             ahandle2 <- openAttribute(dhandle, aname)
             reloaded2 <- readAttribute(ahandle2)
             expect_identical(reloaded, reloaded2)
-            closeAttribute(ahandle)
+            closeAttribute(ahandle2)
         }
     }
 
@@ -284,7 +284,7 @@ test_that("attributes work for groups, string types", {
     closeGroup(fhandle)
 })
 
-test_that("attribute writing throws the right errors", {
+test_that("writeAttribute throws the right errors", {
     tmp <- tempfile(fileext = ".h5")
     fhandle <- createFile(tmp)
     dhandle <- createDataSet(fhandle, "blah", type = createIntegerType(), dims = c(1,2,3))
@@ -310,7 +310,48 @@ test_that("attribute writing throws the right errors", {
     closeGroup(fhandle)
 })
 
-test_that("attribute writing truncates fixed-length strings", {
+test_that("attributes work with zero extents", {
+    tmp <- tempfile(fileext = ".h5")
+    fhandle <- createFile(tmp)
+
+    # Providing this test for completeness and consistency with the dataset tests.
+    # This is not as critical here as it is for the dataset tests, as we don't have compression or chunking.
+
+    dname <- "iBAR"
+    dhandle <- createDataSet(fhandle, dname, type = createIntegerType(), dims = c(0, 0))
+    writeDataSet(dhandle, integer(0))
+    expect_identical(readDataSet(dhandle)$value, integer(0))
+    closeDataSet(dhandle)
+
+    dname <- "iBAR2"
+    dhandle <- createDataSet(fhandle, dname, type = createIntegerType(64, TRUE), dims = c(0, 10))
+    writeDataSet(dhandle, integer(0))
+    expect_identical(readDataSet(dhandle)$value, numeric(0))
+    closeDataSet(dhandle)
+
+    dname <- "fBAR"
+    dhandle <- createDataSet(fhandle, dname, type = createFloatType(64), dims = c(20, 0))
+    writeDataSet(dhandle, numeric(0))
+    expect_identical(readDataSet(dhandle)$value, numeric(0))
+    closeDataSet(dhandle)
+
+    dname <- "sBAR"
+    dhandle <- createDataSet(fhandle, dname, type = createStringType(), dims = 0)
+    writeDataSet(dhandle, character(0))
+    expect_identical(readDataSet(dhandle)$value, character(0))
+    closeDataSet(dhandle)
+
+    dname <- "sBAR2"
+    dhandle <- createDataSet(fhandle, dname, type = createStringType(10), dims = 0)
+    writeDataSet(dhandle, character(0))
+    expect_identical(readDataSet(dhandle)$value, character(0))
+    closeDataSet(dhandle)
+
+    closeGroup(fhandle)
+})
+
+
+test_that("writeAttribute truncates fixed-length strings", {
     tmp <- tempfile(fileext = ".h5")
     fhandle <- createFile(tmp)
     ghandle <- createGroup(fhandle, "blah")
@@ -332,6 +373,29 @@ test_that("attribute writing truncates fixed-length strings", {
     ahandle <- openAttribute(ghandle, "bar")
     reloaded <- readAttribute(ahandle)
     expect_identical(reloaded$value, payload)
+    closeAttribute(ahandle)
+
+    closeGroup(ghandle)
+    closeGroup(fhandle)
+})
+
+test_that("readAttribute error on too-large integers", {
+    tmp <- tempfile(fileext = ".h5")
+    fhandle <- createFile(tmp)
+    ghandle <- createGroup(fhandle, "blah")
+
+    payload <- (2^53 + 1:10 * 10)
+    ahandle <- createAttribute(ghandle, "bar", type = createIntegerType(64, TRUE), dims = 10)
+    writeAttribute(ahandle, payload)
+    expect_error(readAttribute(ahandle), "overflow")
+    writeAttribute(ahandle, -payload)
+    expect_error(readAttribute(ahandle), "overflow")
+    closeAttribute(ahandle)
+
+    # Same for unsigned 64-bit integers.
+    ahandle <- createAttribute(ghandle, "foo", type = createIntegerType(64, FALSE), dims = 10)
+    writeAttribute(ahandle, payload)
+    expect_error(readAttribute(ahandle), "overflow")
     closeAttribute(ahandle)
 
     closeGroup(ghandle)

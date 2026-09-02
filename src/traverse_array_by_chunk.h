@@ -26,6 +26,9 @@ inline std::vector<hsize_t> extract_chunk_dims(const H5::DSetCreatPropList& dcpl
                 break;
             }
             chunkdims[d] = dims[d];
+            if (dims[d]) {
+                remaining /= dims[d];
+            }
             if (d == 0) {
                 break;
             }
@@ -52,6 +55,9 @@ void traverse_array_by_chunk(
     InnerLoop_ inner_loop,
     PostOuterLoop_ post_outer_loop
 ) {
+    for (auto d : dims) {
+        assert(d > 0);
+    }
     const auto ndim = dims.size();
     assert(ndim > 0);
     std::vector<hsize_t> offsets(ndim), counts(chunkdims), position(ndim - 1);
