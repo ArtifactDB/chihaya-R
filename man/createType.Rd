@@ -7,11 +7,11 @@
 \alias{createFloatType}
 \title{Specify a HDF5 data type}
 \usage{
-createStringType(length, encoding = c("UTF-8", "ASCII"))
+createStringType(length = NULL, encoding = c("UTF-8", "ASCII"))
 
-createIntegerType(bits, sign)
+createIntegerType(bits = 32L, sign = TRUE)
 
-createFloatType(bits)
+createFloatType(bits = 64L)
 }
 \arguments{
 \item{length}{Positive integer specifying the maximum length of a fixed-length string.

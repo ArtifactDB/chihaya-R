@@ -39,14 +39,6 @@
 #'
 #' @export
 readAttribute <- function(handle) {
-    handle_type <- attr(handle, "type")
-    output <- NULL
-    if ("group" %in% handle_type) {
-        output <- h5_read_group_attribute(handle, name)
-    } else if ("dataset" %in% handle_type) {
-        output <- h5_read_dataset_attribute(handle, name)
-    } else {
-        stop("unsupported handle type")
-    }
-    output
+    stopifnot("attribute" %in% attr(handle, "type"))
+    h5_read_attribute(handle)
 }

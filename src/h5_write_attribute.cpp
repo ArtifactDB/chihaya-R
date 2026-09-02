@@ -58,13 +58,15 @@ SEXP h5_write_attribute(Rcpp::RObject aptr, Rcpp::RObject vec) {
         }
 
         if (stype.isVariableStr()) {
+            // Populating the vector of Rcpp::Strings first, just in case c_string() references an internal buffer of the Rcpp::String.
+            // Otherwise, we might end up with dangling pointers when the Rcpp::String is ultimately destroyed.
             std::vector<Rcpp::String> block_strs;
-            std::vector<const char*> block_ptrs;
             block_strs.reserve(len);
-            block_ptrs.reserve(len);
             for (hsize_t s = 0; s < len; ++s) {
                 block_strs.push_back(svec[s]);
             }
+            std::vector<const char*> block_ptrs;
+            block_ptrs.reserve(len);
             for (hsize_t s = 0; s < len; ++s) {
                 block_ptrs.push_back(block_strs[s].get_cstring());
             }

@@ -28,5 +28,5 @@
 #' @export
 listChildren <- function(handle) {
     stopifnot("group" %in% attr(handle, "type"))
-    list_children(handle)
+    h5_list_children(handle)
 }

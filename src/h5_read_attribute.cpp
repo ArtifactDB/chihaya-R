@@ -70,7 +70,6 @@ Rcpp::List h5_read_attribute(Rcpp::RObject aptr) {
         auto dvec = sanisizer::create<Rcpp::NumericVector>(len);
         ahandle.read(H5::PredType::NATIVE_DOUBLE, static_cast<double*>(dvec.begin()));
         output["value"] = dvec;
-        output["type"] = "float";
 
     } else if (aclass == H5T_STRING) {
         auto stype = ahandle.getStrType();
@@ -87,8 +86,9 @@ Rcpp::List h5_read_attribute(Rcpp::RObject aptr) {
 
         } else {
             const auto elsize = stype.getSize();
-            auto block_buffer = sanisizer::create<std::vector<char> >(len);
-            auto tmp_buffer = sanisizer::create<std::vector<char> >(sanisizer::sum<std::size_t>(elsize, 1));
+            std::vector<char> block_buffer(sanisizer::product<typename std::vector<char>::size_type>(elsize, len));
+            std::vector<char> tmp_buffer(sanisizer::sum<typename std::vector<char>::size_type>(elsize, 1));
+
             ahandle.read(stype, block_buffer.data());
             for (I<decltype(len)> i = 0; i < len; ++i) {
                 std::copy_n(

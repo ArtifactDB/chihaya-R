@@ -21,23 +21,23 @@
 #' 
 #' @name createType
 #' @export
-createStringType <- function(length, encoding = c("UTF-8", "ASCII")) {
+createStringType <- function(length = NULL, encoding = c("UTF-8", "ASCII")) {
     if (is.null(length)) {
         length <- 0L
     }
-    list("string", as.integer(length), match.arg(encoding))
+    list(type = "string", length = as.integer(length), encoding = match.arg(encoding))
 }
 
 #' @export
 #' @rdname createType
-createIntegerType <- function(bits, sign) {
+createIntegerType <- function(bits = 32L, sign = TRUE) {
     stopifnot(bits %in% c(8L, 16L, 32L, 64L))
-    list("integer", as.integer(bits), as.logical(sign))
+    list(type = "integer", bits = as.integer(bits), sign = as.logical(sign))
 }
 
 #' @export
 #' @rdname createType
-createFloatType <- function(bits) {
+createFloatType <- function(bits = 64L) {
     stopifnot(bits %in% c(32L, 64L))
-    list("float", as.integer(bits))
+    list(type = "float", bits = as.integer(bits))
 }
