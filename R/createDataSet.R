@@ -34,8 +34,10 @@
 createDataSet <- function(handle, name, type, dims, compress = 6, chunkdims = NULL) {
     stopifnot("group" %in% attr(handle, "type"))
 
-    if (is.null(chunkdims)) {
-        chunkdims <- ceiling(dims / prod(dims) * 10000)
+    if (is.null(chunkdims) && length(dims)) {
+        # Default to ~10000 elements in each chunk.
+        scale <- (10000 / prod(dims)) ^ (1 / length(dims))
+        chunkdims <- ceiling(dims * scale)
     }
 
     ptr <- h5_create_dataset(
